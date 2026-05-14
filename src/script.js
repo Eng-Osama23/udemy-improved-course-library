@@ -1,4 +1,5 @@
-fetchCourses();
+const i18n = loadTranslations();
+const lang = getLang(document.documentElement.lang);
 
 const mutationObserver = new MutationObserver(fetchCourses);
 const observerConfig = {
@@ -6,24 +7,28 @@ const observerConfig = {
   subtree: true
 };
 mutationObserver.observe(document, observerConfig);
-
-const i18n = loadTranslations();
-const lang = getLang(document.documentElement.lang);
+fetchCourses();
 
 function fetchCourses() {
   listenForArchiveToggle();
   const courseContainers = document.querySelectorAll('[class^="enrolled-course-card--container--"]:not(.details-done)');
-  if (courseContainers.length == 0) return;
-  [...courseContainers].forEach((courseContainer) => {
+  if (courseContainers.length === 0) return;
 
+  [...courseContainers].forEach((courseContainer) => {
     const isPartialRefresh = courseContainer.classList.contains('partial-refresh');
 
-    const courseId = courseContainer.querySelector('h3[data-purpose="course-title-url"]>a').href.replace('https://www.udemy.com/course-dashboard-redirect/?course_id=', '');
+    const titleAnchor = courseContainer.querySelector('h3[data-purpose="course-title-url"]>a');
+    if (!titleAnchor) return;
+
+    const courseId = titleAnchor.href.replace('https://www.udemy.com/course-dashboard-redirect/?course_id=', '');
 
     const courseCustomDiv = document.createElement('div');
     courseCustomDiv.classList.add('improved-course-card--additional-details', 'js-removepartial');
 
-    const innerContainer = courseContainer.querySelector('div[data-purpose="container"]')
+    const innerContainer = courseContainer.querySelector('div[data-purpose="container"]');
+    if (!innerContainer) return;
+
+    innerContainer.classList.add('improved-course-card--shell');
     innerContainer.appendChild(courseCustomDiv);
 
     courseContainer.classList.add('details-done');
@@ -44,20 +49,20 @@ function fetchCourses() {
     `;
     courseLinkLi.classList.add('js-removepartial');
 
-    const allDropdowns = courseContainer.parentElement.querySelectorAll('.udlite-block-list');
-    if (allDropdowns[1]) {
+    const allDropdowns = courseContainer.parentElement?.querySelectorAll('.udlite-block-list');
+    if (allDropdowns && allDropdowns[1]) {
       allDropdowns[1].appendChild(courseLinkLi);
     }
 
     // Find existing elements in DOM
     const imageWrapper = courseContainer.querySelector('div[class^="course-card-module--image-container--"]');
-    imageWrapper.classList.add('improved-course-card--image-container');
+    imageWrapper?.classList.add('improved-course-card--image-container');
 
     const mainContent = courseContainer.querySelector('div[class^="course-card-module--main-content--"]');
-    mainContent.classList.add('improved-course-card--main-content');
+    mainContent?.classList.add('improved-course-card--main-content');
 
     const courseTitle = courseContainer.querySelector('h3[data-purpose="course-title-url"]');
-    courseTitle.classList.add('improved-course-card--course-title');
+    courseTitle?.classList.add('improved-course-card--course-title');
 
     const priceTextContainer = courseContainer.querySelector('div[class^="course-card-module--price-text-container--"]');
     if (priceTextContainer) priceTextContainer.parentNode.removeChild(priceTextContainer);
@@ -71,13 +76,13 @@ function fetchCourses() {
     const progressAndRating = courseContainer.querySelector('div[class*="enrolled-course-card--progress-and-rating--"]');
     progressAndRating?.classList.add('improved-course-card--progress-and-rating');
 
-    const progressText = progressAndRating.firstChild;
-    const progressMade = /%/.test(progressText.textContent);
+    const progressText = progressAndRating?.firstChild;
+    const progressMade = !!(progressText && /%/.test(progressText.textContent));
 
-    if (!progressMade) progressAndRating.parentNode.removeChild(progressAndRating);
+    if (progressAndRating && !progressMade) progressAndRating.parentNode.removeChild(progressAndRating);
 
     // If progress made
-    if (progressMade) {
+    if (progressMade && imageWrapper && progressBar) {
       // Add progress bar below thumbnail
       const progressBarSpan = document.createElement('span');
       progressBarSpan.classList.add('impr__progress-bar', 'js-removepartial');
@@ -93,30 +98,32 @@ function fetchCourses() {
     }
 
     // Remove existing progress bar
-    if (!isPartialRefresh) {
+    if (!isPartialRefresh && progressBar) {
       progressBar.parentNode.removeChild(progressBar);
     }
 
-    // If course page has draft status, do not even to fetch its data via API
-    if (courseContainer.querySelector('[data-purpose="course-title-url"] a').href.includes('/draft/')) {
-      courseContainer.querySelector('.card__course-link').style.textDecoration = "line-through";
+    // If course page has draft status, do not even fetch its data via API
+    if (courseContainer.querySelector('[data-purpose="course-title-url"] a')?.href.includes('/draft/')) {
+      const linkEl = courseContainer.querySelector('.card__course-link');
+      if (linkEl) linkEl.style.textDecoration = 'line-through';
       courseCustomDiv.classList.add('card__nodata');
       courseCustomDiv.innerHTML += i18n[lang].notavailable;
-      // We're done with this course
       return;
     }
 
-    const fetchUrl = 'https://www.udemy.com/api-2.0/courses/' + courseId + '?fields[course]=rating,num_reviews,num_subscribers,content_length_video,last_update_date,created,locale,has_closed_caption,caption_languages,num_published_lectures';
+    const fetchUrl = 'https://www.udemy.com/api-2.0/courses/' +
+      courseId +
+      '?fields[course]=title,url,rating,num_reviews,num_subscribers,content_length_video,last_update_date,created,locale,has_closed_caption,caption_languages,num_published_lectures';
+
     fetch(fetchUrl)
       .then(response => {
         if (response.ok) {
           return response.json();
-        } else {
-          throw new Error(response.status);
         }
+        throw new Error(response.status);
       })
       .then(json => {
-        if (typeof json === 'undefined') { return; }
+        if (typeof json === 'undefined') return;
 
         // Get everything from JSON and put it in variables
         const rating = json.rating.toFixed(1);
@@ -129,14 +136,13 @@ function fetchCourses() {
         const localeCode = json.locale.locale;
         const hasCaptions = json.has_closed_caption;
         const captionsLangs = json.caption_languages;
-
         // Format creation and update dates for badges/tooltips
         const createdDateShort = formatDateShort(createdDate, lang);
         const createdDateLong = formatDateLong(createdDate, lang);
         const updatedDateShort = formatDateShort(updatedDate, lang);
         const updatedDateLong = formatDateLong(updatedDate, lang);
 
-        setFreshnessClass(courseContainer, getFreshnessStatus(updatedDate));
+        setFreshnessClass(innerContainer, getFreshnessStatus(updatedDate));
 
         // Small helper for rating strip color
         const getColor = v => `hsl(${(Math.round((1 - v) * 120))},100%,45%)`;
@@ -159,25 +165,16 @@ function fetchCourses() {
         const reviewButton = courseContainer.querySelector('[data-purpose="review-button"]');
 
         // Now let's handle own ratings
-
-        // Set up empty html
         let myRatingHtml = '';
         let ratingButton;
         let ratingOwn = 0;
 
         // If ratings stars ARE visible, proceed to build own rating stars
         if (reviewButton != null) {
-
-          // Find the rating-button, and remove its css class
           ratingButton = reviewButton;
-
-          // If I have voted, count the stars and tell me how I voted
           ratingOwn = getRatingFromSvg(ratingButton.querySelector('svg')); // between 0 and 5
-
-          // Remove the old stars from ratingButton
           ratingButton.removeChild(ratingButton.querySelector('span'));
 
-          // Build the html
           myRatingHtml = `
             <div class="impr__rating-row">
               <span class="impr__star-wrapper">
@@ -246,7 +243,7 @@ function fetchCourses() {
         }
 
         // Hide language badge if language is English
-        if (localeCode.slice(0, 2) !== 'en') {
+        if (imageWrapper && localeCode.slice(0, 2) !== 'en') {
           const localeSpan = document.createElement('span');
           localeSpan.classList.add('card__thumb-overlay', 'card__course-locale', 'hover-hide', 'js-removepartial');
           localeSpan.innerHTML = `<span style="margin-right: 3px;vertical-align: bottom;font-size: 14px;line-height: 13px;">${getFlagEmoji(localeCode.slice(-2))}</span>${locale}`;
@@ -254,10 +251,13 @@ function fetchCourses() {
         }
 
         // Add course runtime from API to thumbnail bottom right
-        const runtimeSpan = document.createElement('span');
-        runtimeSpan.classList.add('card__thumb-overlay', 'card__course-runtime', 'hover-hide', 'js-removepartial');
-        runtimeSpan.innerHTML = parseRuntime(runtime, lang);
-        imageWrapper.appendChild(runtimeSpan);
+        if (imageWrapper) {
+          const runtimeSpan = document.createElement('span');
+          runtimeSpan.classList.add('card__thumb-overlay', 'card__course-runtime', 'hover-hide', 'js-removepartial');
+          runtimeSpan.innerHTML = parseRuntime(runtime, lang);
+          imageWrapper.appendChild(runtimeSpan);
+        }
+
       })
       .catch(error => {
         courseCustomDiv.classList.add('card__nodata');
@@ -267,25 +267,21 @@ function fetchCourses() {
 }
 
 function listenForArchiveToggle() {
-
   document.querySelectorAll('[data-purpose="toggle-archived"]').forEach(item => {
-    item.addEventListener('click', event => {
-
-      // super super dirty quickfix for broken archiving. I am sorry
+    item.addEventListener('click', () => {
       setTimeout(() => {
         location.reload();
-      }, 500)
-
+      }, 500);
     });
   });
 }
 
-function setSeparator(int, lang) {
-  return int.toString().replace(/\B(?=(\d{3})+(?!\d))/g, i18n[lang].separator);
+function setSeparator(int, langCode) {
+  return int.toString().replace(/\B(?=(\d{3})+(?!\d))/g, i18n[langCode].separator);
 }
 
-function setDecimal(rating, lang) {
-  return rating.toString().replace('.', i18n[lang].decimal);
+function setDecimal(rating, langCode) {
+  return rating.toString().replace('.', i18n[langCode].decimal);
 }
 
 function parseDate(dateString) {
@@ -294,14 +290,14 @@ function parseDate(dateString) {
   return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
 }
 
-function formatDateShort(date, lang) {
+function formatDateShort(date, langCode) {
   if (!date) return '';
-  return date.toLocaleDateString(lang, { year: 'numeric', month: '2-digit', day: '2-digit' });
+  return date.toLocaleDateString(langCode, { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
-function formatDateLong(date, lang) {
+function formatDateLong(date, langCode) {
   if (!date) return '';
-  return date.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' });
+  return date.toLocaleDateString(langCode, { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 function getFreshnessStatus(updatedDate) {
@@ -313,13 +309,14 @@ function getFreshnessStatus(updatedDate) {
   return 'red';
 }
 
-function setFreshnessClass(courseContainer, status) {
-  courseContainer.classList.remove('impr__freshness--green', 'impr__freshness--yellow', 'impr__freshness--red');
-  courseContainer.classList.add(`impr__freshness--${status}`);
+function setFreshnessClass(targetElement, status) {
+  if (!targetElement) return;
+  targetElement.classList.remove('impr__freshness--green', 'impr__freshness--yellow', 'impr__freshness--red');
+  targetElement.classList.add(`impr__freshness--${status}`);
 }
 
-function getLang(lang) {
-  return i18n.hasOwnProperty(lang) ? lang : 'en-us';
+function getLang(langCode) {
+  return i18n.hasOwnProperty(langCode) ? langCode : 'en-us';
 }
 
 function buildSvgStars(courseId, rating) {
@@ -346,19 +343,18 @@ function buildSvgStars(courseId, rating) {
   `);
 }
 
-function parseRuntime(seconds, lang) {
+function parseRuntime(seconds, langCode) {
   if (seconds % 60 > 29) { seconds += 30; }
-  let hours = Math.floor(seconds / 60 / 60);
-  let minutes = Math.floor(seconds / 60) - (hours * 60);
-  let hoursFormatted = hours > 0 ? hours.toString() + i18n[lang].hours : '';
-  let minutesFormatted = minutes > 0 ? ' ' + minutes.toString() + i18n[lang].mins : '';
+  const hours = Math.floor(seconds / 60 / 60);
+  const minutes = Math.floor(seconds / 60) - (hours * 60);
+  const hoursFormatted = hours > 0 ? hours.toString() + i18n[langCode].hours : '';
+  const minutesFormatted = minutes > 0 ? ' ' + minutes.toString() + i18n[langCode].mins : '';
   return hoursFormatted + minutesFormatted;
 }
 
 function getRatingFromSvg(svgElement) {
-  let percentage = svgElement.querySelector('mask rect').getAttribute('width');
-  let rating = parseFloat(percentage) / 100 * 5;
-  return rating;
+  const percentage = svgElement.querySelector('mask rect').getAttribute('width');
+  return parseFloat(percentage) / 100 * 5;
 }
 
 function loadTranslations() {

@@ -1,29 +1,35 @@
 .improved-course-card--container {
   border: 1px solid #d1d7dc;
+}
+
+.improved-course-card--shell {
   position: relative;
   overflow: hidden;
+  border-radius: 10px;
 }
 
-.improved-course-card--container::before {
+.improved-course-card--shell::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 6px;
+  bottom: 6px;
   left: 0;
-  width: 5px;
+  width: 8px;
+  border-radius: 999px;
   background: #d1d7dc;
+  z-index: 1;
 }
 
-.improved-course-card--container.impr__freshness--green::before {
-  background: #1ea44b;
+.improved-course-card--shell.impr__freshness--green::before {
+  background: linear-gradient(180deg, #32c867 0%, #1a9f48 100%);
 }
 
-.improved-course-card--container.impr__freshness--yellow::before {
-  background: #d9a000;
+.improved-course-card--shell.impr__freshness--yellow::before {
+  background: linear-gradient(180deg, #ffce4b 0%, #cf9400 100%);
 }
 
-.improved-course-card--container.impr__freshness--red::before {
-  background: #cb2f2f;
+.improved-course-card--shell.impr__freshness--red::before {
+  background: linear-gradient(180deg, #ff7f7f 0%, #c93a3a 100%);
 }
 
 .improved-course-card--container:hover {
@@ -67,6 +73,7 @@ span[class^='leave-rating--helper-text'] {
   padding: 2px 4px;
   border-radius: 2px;
   transition: opacity linear 100ms;
+  z-index: 2;
 }
 
 .card__course-link {
@@ -117,6 +124,7 @@ span[class^='leave-rating--helper-text'] {
   left: 0;
   height: 5px;
   background: rgba(20, 30, 46, 0.75);
+  z-index: 2;
 }
 
 .impr__progress-bar .progress__bar {
@@ -127,7 +135,7 @@ span[class^='leave-rating--helper-text'] {
   width: 100%;
   font-size: 1.2rem;
   color: #464b53;
-  height: 82px;
+  min-height: 92px;
 }
 
 .impr__rating .impr__rating-number {
@@ -146,7 +154,7 @@ span[class^='leave-rating--helper-text'] {
   flex-direction: column;
   justify-content: space-between;
   padding: 0 6px 6px;
-  height: 42px;
+  min-height: 42px;
 }
 
 .impr__rating-strip {
@@ -159,6 +167,7 @@ span[class^='leave-rating--helper-text'] {
   line-height: 1.7;
   display: flex;
   flex-wrap: wrap;
+  gap: 6px;
 }
 
 .impr__badge {
@@ -170,7 +179,6 @@ span[class^='leave-rating--helper-text'] {
   gap: 4px;
   background: #f7f8fa;
   padding: 0 5px;
-  margin-right: 5px;
   border-radius: 2px;
   border: 1px solid #e7e7e8;
   cursor: default;
