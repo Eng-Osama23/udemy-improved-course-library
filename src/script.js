@@ -142,7 +142,7 @@ function fetchCourses() {
         const updatedDateShort = formatDateShort(updatedDate, lang);
         const updatedDateLong = formatDateLong(updatedDate, lang);
 
-        setFreshnessClass(innerContainer, getFreshnessStatus(updatedDate));
+        setFreshnessClass(courseCustomDiv, getFreshnessStatus(updatedDate));
 
         // Small helper for rating strip color
         const getColor = v => `hsl(${(Math.round((1 - v) * 120))},100%,45%)`;
@@ -192,7 +192,7 @@ function fetchCourses() {
         let createdDateInfo = '';
         if (createdDateShort !== '' && createdDateLong !== '') {
           createdDateInfo = `
-            <div class="impr__badge impr__badge--date" data-tooltip="${i18n[lang].created}${createdDateLong}">
+            <div class="impr__badge impr__badge--date impr__badge--created" data-tooltip="${i18n[lang].created}${createdDateLong}">
               <svg aria-hidden="true" focusable="false" class="ud-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path d="M17 3v1H7V3H5v1H3v17h18V4h-2V3h-2zm2 16H5V9h14v10zm0-12H5V6h2v1h2V6h6v1h2V6h2v1z"/>
               </svg><span>${createdDateShort}</span>
@@ -203,7 +203,7 @@ function fetchCourses() {
         let updatedDateInfo = '';
         if (updatedDateShort !== '' && updatedDateLong !== '') {
           updatedDateInfo = `
-            <div class="impr__badge impr__badge--date" data-tooltip="${i18n[lang].updated}${updatedDateLong}">
+            <div class="impr__badge impr__badge--date impr__badge--updated" data-tooltip="${i18n[lang].updated}${updatedDateLong}">
               <svg aria-hidden="true" focusable="false" class="ud-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path d="M11 8v5l4.3 2.5.7-1.3-3.5-2V8H11zm10 2V3l-2.6 2.6A9 9 0 1 0 21 12h-2a7 7 0 1 1-2-5l-3 3h7z"/>
               </svg><span>${updatedDateShort}</span>
@@ -212,7 +212,6 @@ function fetchCourses() {
         }
 
         courseCustomDiv.innerHTML = `
-          <div class="impr__rating">
             <div class="impr__rating-row">
               <span class="impr__star-wrapper">
                 <span class="ud-sr-only">Rating: ${rating} out of 5</span>

@@ -8,30 +8,6 @@
   border-radius: 10px;
 }
 
-.improved-course-card--shell::before {
-  content: '';
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  left: 0;
-  width: 8px;
-  border-radius: 999px;
-  background: #d1d7dc;
-  z-index: 1;
-}
-
-.improved-course-card--shell.impr__freshness--green::before {
-  background: linear-gradient(180deg, #32c867 0%, #1a9f48 100%);
-}
-
-.improved-course-card--shell.impr__freshness--yellow::before {
-  background: linear-gradient(180deg, #ffce4b 0%, #cf9400 100%);
-}
-
-.improved-course-card--shell.impr__freshness--red::before {
-  background: linear-gradient(180deg, #ff7f7f 0%, #c93a3a 100%);
-}
-
 .improved-course-card--container:hover {
   background-color: #f7f9fa;
 }
@@ -136,6 +112,31 @@ span[class^='leave-rating--helper-text'] {
   font-size: 1.2rem;
   color: #464b53;
   min-height: 92px;
+  position: relative;
+  padding-left: 14px;
+}
+
+.improved-course-card--additional-details::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: 6px;
+  border-radius: 999px;
+  background: #d1d7dc;
+}
+
+.improved-course-card--additional-details.impr__freshness--green::before {
+  background: linear-gradient(180deg, #32c867 0%, #1a9f48 100%);
+}
+
+.improved-course-card--additional-details.impr__freshness--yellow::before {
+  background: linear-gradient(180deg, #ffce4b 0%, #cf9400 100%);
+}
+
+.improved-course-card--additional-details.impr__freshness--red::before {
+  background: linear-gradient(180deg, #ff7f7f 0%, #c93a3a 100%);
 }
 
 .impr__rating .impr__rating-number {
@@ -186,6 +187,28 @@ span[class^='leave-rating--helper-text'] {
 
 .impr__badge--date {
   min-width: 78px;
+}
+
+.impr__badge--created {
+  background: #f5f0ff;
+  border-color: #d8c8f5;
+  color: #5b21b6;
+}
+
+.impr__badge--created .ud-icon {
+  opacity: 1;
+  fill: #7c3aed;
+}
+
+.impr__badge--updated {
+  background: #f0faf3;
+  border-color: #b6e8c4;
+  color: #166534;
+}
+
+.impr__badge--updated .ud-icon {
+  opacity: 1;
+  fill: #16a34a;
 }
 
 .impr__badge .ud-icon {
