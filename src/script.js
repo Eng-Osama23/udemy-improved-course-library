@@ -123,15 +123,20 @@ function fetchCourses() {
         const reviews = json.num_reviews;
         const enrolled = json.num_subscribers;
         const runtime = json.content_length_video;
-        const date = json.last_update_date ?? json.created.slice(0, 10); // 'created' comes as full iso string with time
+        const createdDate = parseDate(json.created);
+        const updatedDate = parseDate(json.last_update_date || json.created);
         const locale = json.locale.title;
         const localeCode = json.locale.locale;
         const hasCaptions = json.has_closed_caption;
         const captionsLangs = json.caption_languages;
 
-        // Format "Last updated / Created" Dates
-        const updateDateShort = date ? date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$2\/$1') : '';
-        const updateDateLong = date ? new Date(date).toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+        // Format creation and update dates for badges/tooltips
+        const createdDateShort = formatDateShort(createdDate, lang);
+        const createdDateLong = formatDateLong(createdDate, lang);
+        const updatedDateShort = formatDateShort(updatedDate, lang);
+        const updatedDateLong = formatDateLong(updatedDate, lang);
+
+        setFreshnessClass(courseContainer, getFreshnessStatus(updatedDate));
 
         // Small helper for rating strip color
         const getColor = v => `hsl(${(Math.round((1 - v) * 120))},100%,45%)`;
@@ -187,13 +192,24 @@ function fetchCourses() {
 
         const ratingStripColor = ratingOwn > 0 ? ratingOwn : rating;
 
-        let updateDateInfo = '';
-        if (updateDateShort !== '' && updateDateLong !== '') {
-          updateDateInfo = `
-            <div class="impr__badge" data-tooltip="${i18n[lang].updated}${updateDateLong}">
+        let createdDateInfo = '';
+        if (createdDateShort !== '' && createdDateLong !== '') {
+          createdDateInfo = `
+            <div class="impr__badge impr__badge--date" data-tooltip="${i18n[lang].created}${createdDateLong}">
+              <svg aria-hidden="true" focusable="false" class="ud-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M17 3v1H7V3H5v1H3v17h18V4h-2V3h-2zm2 16H5V9h14v10zm0-12H5V6h2v1h2V6h6v1h2V6h2v1z"/>
+              </svg><span>${createdDateShort}</span>
+            </div>
+          `;
+        }
+
+        let updatedDateInfo = '';
+        if (updatedDateShort !== '' && updatedDateLong !== '') {
+          updatedDateInfo = `
+            <div class="impr__badge impr__badge--date" data-tooltip="${i18n[lang].updated}${updatedDateLong}">
               <svg aria-hidden="true" focusable="false" class="ud-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <path d="M11 8v5l4.3 2.5.7-1.3-3.5-2V8H11zm10 2V3l-2.6 2.6A9 9 0 1 0 21 12h-2a7 7 0 1 1-2-5l-3 3h7z"/>
-              </svg><span>${updateDateShort}</span>
+              </svg><span>${updatedDateShort}</span>
             </div>
           `;
         }
@@ -217,7 +233,8 @@ function fetchCourses() {
                 <path d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5c0-2.3-4.7-3.5-7-3.5zm8 0h-1c1.2.9 2 2 2 3.5V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z"/>
               </svg><span>${setSeparator(enrolled, lang)}</span>
             </div>
-            ${updateDateInfo}
+            ${createdDateInfo}
+            ${updatedDateInfo}
             ${captionsTag}
           </div>
         `;
@@ -271,6 +288,36 @@ function setDecimal(rating, lang) {
   return rating.toString().replace('.', i18n[lang].decimal);
 }
 
+function parseDate(dateString) {
+  if (!dateString) return null;
+  const parsedDate = new Date(dateString);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+}
+
+function formatDateShort(date, lang) {
+  if (!date) return '';
+  return date.toLocaleDateString(lang, { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+function formatDateLong(date, lang) {
+  if (!date) return '';
+  return date.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function getFreshnessStatus(updatedDate) {
+  if (!updatedDate) return 'red';
+  const diffInMs = Date.now() - updatedDate.getTime();
+  const ageInDays = Math.max(0, Math.floor(diffInMs / 86400000));
+  if (ageInDays <= 90) return 'green';
+  if (ageInDays <= 365) return 'yellow';
+  return 'red';
+}
+
+function setFreshnessClass(courseContainer, status) {
+  courseContainer.classList.remove('impr__freshness--green', 'impr__freshness--yellow', 'impr__freshness--red');
+  courseContainer.classList.add(`impr__freshness--${status}`);
+}
+
 function getLang(lang) {
   return i18n.hasOwnProperty(lang) ? lang : 'en-us';
 }
@@ -319,6 +366,7 @@ function loadTranslations() {
     'en-us': {
       'overview': 'Course overview',
       'enrolled': 'students',
+      'created': 'Created ',
       'updated': 'Last updated ',
       'notavailable': 'Course info not available',
       'separator': ',',
@@ -329,6 +377,7 @@ function loadTranslations() {
     'de-de': {
       'overview': 'Kursübersicht',
       'enrolled': 'Teilnehmer',
+      'created': 'Erstellt ',
       'updated': 'Zuletzt aktualisiert ',
       'notavailable': 'Kursinfo nicht verfügbar',
       'separator': '.',
@@ -339,6 +388,7 @@ function loadTranslations() {
     'es-es': {
       'overview': 'Descripción del curso',
       'enrolled': 'estudiantes',
+      'created': 'Creado ',
       'updated': 'Última actualización ',
       'notavailable': 'La información del curso no está disponible',
       'separator': '.',
@@ -349,6 +399,7 @@ function loadTranslations() {
     'fr-fr': {
       'overview': 'Aperçu du cours',
       'enrolled': 'participants',
+      'created': 'Créé le ',
       'updated': 'Dernière mise à jour : ',
       'notavailable': 'Informations sur les cours non disponibles',
       'separator': ' ',
@@ -359,6 +410,7 @@ function loadTranslations() {
     'it-it': {
       'overview': 'Panoramica del corso',
       'enrolled': 'studenti',
+      'created': 'Creato ',
       'updated': 'Ultimo aggiornamento ',
       'notavailable': 'Informazioni sul corso non disponibili',
       'separator': '.',
@@ -369,6 +421,7 @@ function loadTranslations() {
     'ja-jp': {
       'overview': 'コースの概要',
       'enrolled': '受講生',
+      'created': '作成日 ',
       'updated': '最終更新日 ',
       'notavailable': 'コースの情報はありません。',
       'separator': ',',
