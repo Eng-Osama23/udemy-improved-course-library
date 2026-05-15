@@ -273,3 +273,34 @@ span[class^='leave-rating--helper-text'] {
   display: inline-flex;
   align-items: center;
 }
+
+/* Duration color coding styles */
+.impr__runtime-text {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 3px;
+  display: inline-block;
+  background-color: rgba(168, 85, 247, 0.9);
+  color: #ffffff;
+}
+
+/* Premium badge styles */
+.impr__badge--premium {
+  background: #f3e8ff;
+  border-color: #d8b4fe;
+  color: #6b21a8;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.impr__badge--premium .ud-icon {
+  opacity: 1;
+  fill: #a855f7;
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.impr__badge--premium span {
+  margin-left: 2px;
+}
