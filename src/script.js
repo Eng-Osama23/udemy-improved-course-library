@@ -151,10 +151,12 @@ function fetchCourses() {
         if (!json) return;
 
         // Extract metrics
-        const rating = Number(json.rating || 0).toFixed(1);
+        const ratingValue = Number(json.rating || 0);
+        const rating = ratingValue.toFixed(1);
         const reviews = json.num_reviews || 0;
         const enrolled = json.num_subscribers || 0;
         const runtime = json.content_length_video || 0;
+        const runtimeHours = runtime / 3600;
         const lectures = json.num_published_lectures || 0;
         const locale = json.locale?.title || 'Unknown';
         const localeCode = json.locale?.locale || 'en-us';
@@ -166,86 +168,42 @@ function fetchCourses() {
         const ageInDays = updatedDate ? Math.floor((Date.now() - updatedDate.getTime()) / 86400000) : 9999;
 
         // =====================================================
-        // REVISED HEURISTIC AI SCORE ENGINE (RE-BUILT PERFECTION)
+        // AI EFFICIENCY SCORE ENGINE v2.0 (Modern Minimal)
+        // Credibility-aware algorithm with review weighting
         // =====================================================
-        let ratingWeight = 0;
-        if (rating >= 4.7) ratingWeight = 40;
-        else if (rating >= 4.5) ratingWeight = 35;
-        else if (rating >= 4.3) ratingWeight = 28;
-        else if (rating >= 4.0) ratingWeight = 20;
-        else if (rating >= 3.5) ratingWeight = 8;
+        const scoreData = {
+          rating: ratingValue,
+          reviewCount: reviews,
+          enrolledCount: enrolled,
+          runtimeSeconds: runtime,
+          lectureCount: lectures,
+          ageInDays: ageInDays,
+          isExam: isExam
+        };
+        
+        const score = calculateOverallScore(scoreData);
 
-        let freshnessWeight = 0;
-        if (ageInDays <= 90) freshnessWeight = 25;       // Ultra Fresh (0-3 Months)
-        else if (ageInDays <= 180) freshnessWeight = 20;  // High Context (3-6 Months)
-        else if (ageInDays <= 365) freshnessWeight = 15;  // Current Year Ecosystem
-        else if (ageInDays <= 730) freshnessWeight = 5;   // Legacy Baseline
+        // Modern Minimal Color Palette (Cyan/Violet/Amber/Red)
+        const scoreColor = getScoreColor(score);
+        const cardStyling = getCardStyling(score, isExam);
 
-        let socialWeight = 0;
-        if (reviews >= 20000 || enrolled >= 150000) socialWeight = 20;
-        else if (reviews >= 5000 || enrolled >= 40000) socialWeight = 15;
-        else if (reviews >= 1000 || enrolled >= 10000) socialWeight = 10;
-        else if (reviews >= 100) socialWeight = 5;
-
-        let efficiencyWeight = 0;
-        const runtimeHours = runtime / 3600;
-        if (runtimeHours >= 4 && runtimeHours <= 25) efficiencyWeight = 15; // Optimal Learning Sweetspot
-        else if (runtimeHours > 25 && runtimeHours <= 50) efficiencyWeight = 10; // Complete Track
-        else if (runtimeHours > 0 && runtimeHours < 4) efficiencyWeight = 8;    // Target Skill Upskill
-        else if (runtimeHours > 50) efficiencyWeight = 4;                       // Bloat/Attrition Risk
-
-        let score = ratingWeight + freshnessWeight + socialWeight + efficiencyWeight;
-        if (isExam) {
-          score = Math.round((ratingWeight / 40 * 60) + (freshnessWeight / 25 * 40));
-        }
-        score = Math.min(100, Math.max(0, Math.round(score)));
-
-        let scoreColor = '#ef4444';
-        if (score >= 80) scoreColor = '#10b981';
-        else if (score >= 60) scoreColor = '#f59e0b';
-        else if (score >= 40) scoreColor = '#f97316';
+        courseContainer.style.background = cardStyling.background;
+        courseContainer.style.border = cardStyling.border;
+        courseContainer.style.borderRadius = '12px';
+        courseContainer.style.boxShadow = cardStyling.shadow;
+        courseContainer.style.padding = '8px';
 
         // =====================================================
-        // BACKGROUND CONTAINER COLOR GENERATION
-        // =====================================================
-        let cardBg = 'linear-gradient(135deg, #ffffff, #f8fafc)';
-        let cardBorder = '1px solid #e2e8f0';
-        let cardShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-
-        if (isExam) {
-          // Boosted layout saturation and contrast parameters for exam layouts
-          cardBg = 'linear-gradient(135deg, #ffedd5, #fed7aa)';
-          cardBorder = '2px solid #f97316';
-          cardShadow = '0 8px 20px rgba(249,115,22,0.3)';
-        } else {
-          if (score >= 80) {
-            cardBg = 'linear-gradient(135deg, #f0fdf4, #e6fcf5)'; 
-            cardBorder = '1px solid #bbf7d0';
-            cardShadow = '0 6px 16px rgba(16,185,129,0.12)';
-          } else if (score >= 60) {
-            cardBg = 'linear-gradient(135deg, #fefce8, #fffdf0)'; 
-            cardBorder = '1px solid #fef08a';
-            cardShadow = '0 6px 16px rgba(245,158,11,0.08)';
-          } else if (score >= 40) {
-            cardBg = 'linear-gradient(135deg, #fff7ed, #fffaf5)'; 
-            cardBorder = '1px solid #fed7aa';
-          }
-        }
-
-        courseContainer.style.background = cardBg;
-        courseContainer.style.border = cardBorder;
-        courseContainer.style.borderRadius = '14px';
-        courseContainer.style.boxShadow = cardShadow;
-        courseContainer.style.padding = '5px';
-
-        // =====================================================
-        // PREMIUM TRUST TIERS (BETTER RATING VISUALIZATION)
+        // TRUST TIER CLASSIFICATION (Credibility-based)
         // =====================================================
         let trustTier = 'Standard Track';
         let trustColor = '#64748b';
-        if (rating >= 4.7) { trustTier = 'Elite Rank Class'; trustColor = '#b45309'; }
-        else if (rating >= 4.4) { trustTier = 'Highly Acclaimed'; trustColor = '#c2410c'; }
-        else if (rating >= 4.0) { trustTier = 'Good Standing'; trustColor = '#475569'; }
+        const reviewCredibility = calculateReviewCredibility(reviews);
+        
+        if (ratingValue >= 4.7 && reviewCredibility >= 0.8) { trustTier = 'Elite Rank Class'; trustColor = '#06b6d4'; }
+        else if (ratingValue >= 4.4 && reviewCredibility >= 0.6) { trustTier = 'Highly Acclaimed'; trustColor = '#8b5cf6'; }
+        else if (ratingValue >= 4.0 && reviewCredibility >= 0.4) { trustTier = 'Good Standing'; trustColor = '#64748b'; }
+        else if (ratingValue >= 4.0) { trustTier = 'Emerging Quality'; trustColor = '#f59e0b'; }
 
         const ratingDashboardHtml = `
           <div title="Course Rating Metrics" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.75); padding:8px 12px; border-radius:10px; margin-bottom:10px; border:1px solid rgba(0,0,0,0.05); cursor:help;">
@@ -332,16 +290,16 @@ function fetchCourses() {
           tacticalDecisionTag = `<div class="impr__badge" title="AI Recommendation Category" style="background:#e2e8f0; color:#475569; border-color:#cbd5e1; font-weight:700; font-size:10px;">🛑 Deprioritized (Outdated Archive)</div>`;
         }
 
-        let runtimeBg = '#f0f9ff'; let runtimeColor = '#0369a1'; let runtimeBorder = '#bae6fd';
-        if (runtimeHours >= 40) { runtimeBg = '#fdf2f8'; runtimeColor = '#9d174d'; runtimeBorder = '#fbcfe8'; }
+        let runtimeBg = '#ecfdf5'; let runtimeColor = '#0d7377'; let runtimeBorder = '#a7f3d0';
+        if (runtimeHours >= 40) { runtimeBg = '#f3f0ff'; runtimeColor = '#6b21a8'; runtimeBorder = '#d8b4fe'; }
 
         // =====================================================
         // INTEGRATED RENDERING INTERFACE LAYER
         // =====================================================
         courseCustomDiv.innerHTML = `
           <div class="impr__recommendation-bar" style="height:6px; width:${score}%; background:${scoreColor}; border-radius:999px; margin-bottom:8px; transition:0.3s;"></div>
-          <div style="font-size:12px; font-weight:800; color:${scoreColor}; margin-bottom:8px; letter-spacing:0.3px;">
-            AI Efficiency Score: ${score}/100
+          <div style="font-size:14px; font-weight:800; color:${scoreColor}; margin-bottom:8px; letter-spacing:0.3px; font-family:'Fira Code',monospace;">
+            Score ${score}/100
           </div>
 
           ${ratingDashboardHtml}
@@ -351,12 +309,12 @@ function fetchCourses() {
           </div>
 
           <div class="impr__stats">
-            <div class="impr__badge" title="Total Enrolled Students" style="background:#f8fafc; color:#334155; border-color:#e2e8f0; font-weight:600;">👥 ${setSeparator(enrolled, lang)} enrolled</div>
-            ${runtime > 0 ? `<div class="impr__badge" title="Total Video Course Runtime" style="background:${runtimeBg}; color:${runtimeColor}; border-color:${runtimeBorder}; font-weight:600;">⏱ ${parseRuntime(runtime, lang)}</div>` : ''}
-            ${runtime > 0 && lectures > 0 ? `<div class="impr__badge" title="Total Published Lessons" style="background:#fff5f5; color:#991b1b; border-color:#fee2e2; font-weight:600;">🎥 ${lectures} lessons</div>` : ''}
+            <div class="impr__badge" title="Total Enrolled Students" style="background:#f8fafc; color:#1e293b; border-color:#e2e8f0; font-weight:600; font-family:'Fira Code',monospace;">👥 ${setSeparator(enrolled, lang)}</div>
+            ${runtime > 0 ? `<div class="impr__badge" title="Total Video Course Runtime" style="background:${runtimeBg}; color:${runtimeColor}; border-color:${runtimeBorder}; font-weight:600; font-family:'Fira Code',monospace;">⏱ ${parseRuntime(runtime, lang)}</div>` : ''}
+            ${runtime > 0 && lectures > 0 ? `<div class="impr__badge" title="Total Published Lessons" style="background:#fff5f5; color:#991b1b; border-color:#fee2e2; font-weight:600; font-family:'Fira Code',monospace;">🎥 ${lectures}</div>` : ''}
             <div class="impr__badge" title="Course Audio Language" style="background:#f8fafc; color:#1e293b; border-color:#e2e8f0; font-weight:600;">🌍 ${locale}</div>
-            ${createdDate ? `<div class="impr__badge" title="Original Course Creation Date" style="background:#faf5ff; color:#6b21a8; border-color:#f3e8ff; font-weight:600;">📅 Org: ${formatDateCustom(createdDate)}</div>` : ''}
-            ${updatedDate ? `<div class="impr__badge" title="Last Revised Date" style="background:#f0f9ff; color:#1d4ed8; border-color:#e0f2fe; font-weight:700;">🔄 Rev: ${formatDateCustom(updatedDate)}</div>` : ''}
+            ${createdDate ? `<div class="impr__badge" title="Original Course Creation Date" style="background:#faf5ff; color:#6b21a8; border-color:#f3e8ff; font-weight:600; font-family:'Fira Code',monospace;">📅 ${formatDateCustom(createdDate)}</div>` : ''}
+            ${updatedDate ? `<div class="impr__badge" title="Last Revised Date" style="background:#f0f9ff; color:#1d4ed8; border-color:#e0f2fe; font-weight:700; font-family:'Fira Code',monospace;">🔄 ${formatDateCustom(updatedDate)}</div>` : ''}
             
             ${freshnessBadge}
             ${lectureStyleBadge}
@@ -372,12 +330,13 @@ function fetchCourses() {
         if (imageWrapper && runtime > 0) {
           const runtimeSpan = document.createElement('span');
           runtimeSpan.classList.add('card__thumb-overlay', 'card__course-runtime', 'hover-hide', 'js-removepartial');
-          runtimeSpan.style.background = 'rgba(15,23,42,0.9)';
-          runtimeSpan.style.color = 'white';
-          runtimeSpan.style.fontSize = '12px';
+          runtimeSpan.style.background = 'rgba(1, 40, 60, 0.92)';
+          runtimeSpan.style.color = '#06b6d4';
+          runtimeSpan.style.fontSize = '11px';
           runtimeSpan.style.fontWeight = '700';
-          runtimeSpan.style.padding = '3px 6px';
-          runtimeSpan.style.borderRadius = '4px';
+          runtimeSpan.style.padding = '4px 8px';
+          runtimeSpan.style.borderRadius = '6px';
+          runtimeSpan.style.fontFamily = '"Fira Code",monospace';
           runtimeSpan.title = "Runtime Length Overlay";
           runtimeSpan.innerHTML = `⏱ ${parseRuntime(runtime, lang)}`;
           imageWrapper.appendChild(runtimeSpan);
@@ -386,6 +345,12 @@ function fetchCourses() {
         if (imageWrapper && localeCode.slice(0, 2) !== 'en') {
           const localeSpan = document.createElement('span');
           localeSpan.classList.add('card__thumb-overlay', 'card__course-locale', 'hover-hide', 'js-removepartial');
+          localeSpan.style.background = 'rgba(30, 41, 59, 0.92)';
+          localeSpan.style.color = '#f1f5f9';
+          localeSpan.style.fontSize = '11px';
+          localeSpan.style.fontWeight = '600';
+          localeSpan.style.padding = '4px 8px';
+          localeSpan.style.borderRadius = '6px';
           localeSpan.title = "Language Context Overlay";
           localeSpan.innerHTML = `<span style="margin-right:3px;">${getFlagEmoji(localeCode.slice(-2))}</span>${locale}`;
           imageWrapper.appendChild(localeSpan);

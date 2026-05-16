@@ -16,7 +16,7 @@
   "content_scripts": [
     {
       "matches": ["https://www.udemy.com/home/my-courses/*"],
-      "js": ["script.js"],
+      "js": ["scoreEngine.js", "script.js"],
       "css": ["style.css"],
       "run_at": "document_end"
     }
