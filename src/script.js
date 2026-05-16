@@ -1,45 +1,38 @@
-// Inject premium layout extensions and style overrides
+// Inject premium layout extensions, style overrides, and CSV button styles
 if (!document.getElementById('impr-dynamic-styles')) {
   const style = document.createElement('style');
   style.id = 'impr-dynamic-styles';
   style.innerHTML = `
     /* Remove left-sided vertical bar layout */
-    .improved-course-card--additional-details::before {
-      display: none !important;
-    }
+    .improved-course-card--additional-details::before { display: none !important; }
     /* Structural adjustments for the container cards */
-    [class^="enrolled-course-card--container--"] {
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    [class^="enrolled-course-card--container--"] { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     .impr__badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid;
-      font-size: 11px;
-      margin: 2px;
-      white-space: nowrap;
-      cursor: help; /* Changes cursor to a help pointer to indicate hovering provides information */
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
+      border-radius: 6px; border: 1px solid; font-size: 11px; margin: 2px;
+      white-space: nowrap; cursor: help;
     }
-    /* Explicitly kill any pseudo-element layout elements creating black arrows or speech artifacts on hover */
-    .impr__badge:hover::before,
-    .impr__badge:hover::after {
-      display: none !important;
-      content: none !important;
+    .impr__badge:hover::before, .impr__badge:hover::after { display: none !important; content: none !important; }
+    .impr__stats { display: flex; flex-wrap: wrap; gap: 4px; }
+    
+    /* Floating Export CSV Button */
+    #impr-export-btn {
+      position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+      background: linear-gradient(135deg, #8b5cf6, #6b21a8); color: white;
+      border: none; padding: 12px 24px; border-radius: 50px; font-weight: 800;
+      cursor: pointer; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+      transition: transform 0.2s; display: flex; align-items: center; gap: 8px;
     }
-    .impr__stats {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
+    #impr-export-btn:hover { transform: translateY(-3px); }
   `;
   document.head.appendChild(style);
 }
 
 const i18n = loadTranslations();
 const lang = getLang(document.documentElement.lang);
+
+// Initialize Floating Export Button
+createExportButton();
 
 const mutationObserver = new MutationObserver(fetchCourses);
 const observerConfig = { childList: true, subtree: true };
@@ -57,45 +50,26 @@ function fetchCourses() {
   if (courseContainers.length === 0) return;
 
   [...courseContainers].forEach((courseContainer) => {
-    const titleAnchor = courseContainer.querySelector(
-      'h3[data-purpose="course-title-url"]>a'
-    );
-
+    const titleAnchor = courseContainer.querySelector('h3[data-purpose="course-title-url"]>a');
     if (!titleAnchor) return;
 
-    const courseId = titleAnchor.href.replace(
-      'https://www.udemy.com/course-dashboard-redirect/?course_id=',
-      ''
-    );
+    const courseId = titleAnchor.href.replace('https://www.udemy.com/course-dashboard-redirect/?course_id=', '').replace('/', '');
 
     const courseCustomDiv = document.createElement('div');
-    courseCustomDiv.classList.add(
-      'improved-course-card--additional-details',
-      'js-removepartial'
-    );
+    courseCustomDiv.classList.add('improved-course-card--additional-details', 'js-removepartial');
 
     const innerContainer = courseContainer.querySelector('div[data-purpose="container"]');
     if (!innerContainer) return;
 
     innerContainer.classList.add('improved-course-card--shell');
     innerContainer.appendChild(courseCustomDiv);
+    courseContainer.classList.add('details-done', 'improved-course-card--container');
 
-    courseContainer.classList.add(
-      'details-done',
-      'improved-course-card--container'
-    );
-
-    // =====================================================
-    // COURSE OVERVIEW LINK
-    // =====================================================
+    // Overview Link Insertion (Unchanged)
     const courseLinkLi = document.createElement('li');
     courseLinkLi.innerHTML = `
       <a class="udlite-btn udlite-btn-large udlite-btn-ghost udlite-text-sm udlite-block-list-item udlite-block-list-item-small udlite-block-list-item-neutral"
-         role="menuitem"
-         tabindex="-1"
-         href="https://www.udemy.com/course/${courseId}/"
-         target="_blank"
-         rel="noopener">
+         role="menuitem" tabindex="-1" href="https://www.udemy.com/course/${courseId}/" target="_blank" rel="noopener">
         <span class="udi-small udi udi-explore udlite-block-list-item-icon"></span>
         <div class="udlite-block-list-item-content card__course-link">
           ${i18n[lang].overview}
@@ -106,41 +80,15 @@ function fetchCourses() {
       </a>
     `;
     courseLinkLi.classList.add('js-removepartial');
-
     const allDropdowns = courseContainer.parentElement?.querySelectorAll('.udlite-block-list');
-    if (allDropdowns && allDropdowns[1]) {
-      allDropdowns[1].appendChild(courseLinkLi);
-    }
+    if (allDropdowns && allDropdowns[1]) allDropdowns[1].appendChild(courseLinkLi);
 
-    const imageWrapper = courseContainer.querySelector(
-      'div[class^="course-card-module--image-container--"]'
-    );
+    const imageWrapper = courseContainer.querySelector('div[class^="course-card-module--image-container--"]');
     imageWrapper?.classList.add('improved-course-card--image-container');
 
-    // =====================================================
-    // API FETCH DATA EXTRACTION
-    // =====================================================
-    const fetchUrl =
-      'https://www.udemy.com/api-2.0/courses/' +
-      courseId +
-      '?fields[course]=' +
-      [
-        'title',
-        'url',
-        'rating',
-        'num_reviews',
-        'num_subscribers',
-        'content_length_video',
-        'last_update_date',
-        'created',
-        'locale',
-        'visible_instructors',
-        'num_published_lectures',
-        'is_paid',
-        'price',
-        'badge_family',
-        'badge_info'
-      ].join(',');
+    // Added primary_category and primary_subcategory to API request
+    const fetchUrl = 'https://www.udemy.com/api-2.0/courses/' + courseId + 
+      '?fields[course]=title,url,rating,num_reviews,num_subscribers,content_length_video,last_update_date,created,locale,visible_instructors,num_published_lectures,is_paid,price,badge_family,badge_info,primary_category,primary_subcategory';
 
     fetch(fetchUrl)
       .then(response => {
@@ -150,7 +98,8 @@ function fetchCourses() {
       .then(json => {
         if (!json) return;
 
-        // Extract metrics
+        // Metric Extraction
+        const courseTitle = json.title || 'Unknown Title';
         const ratingValue = Number(json.rating || 0);
         const rating = ratingValue.toFixed(1);
         const reviews = json.num_reviews || 0;
@@ -164,28 +113,18 @@ function fetchCourses() {
         const createdDate = parseDate(json.created);
         const updatedDate = parseDate(json.last_update_date || json.created);
         const isExam = runtime === 0;
+        
+        // Category Extraction
+        const category = json.primary_category?.title || 'None';
+        const subcategory = json.primary_subcategory?.title || 'None';
 
         const ageInDays = updatedDate ? Math.floor((Date.now() - updatedDate.getTime()) / 86400000) : 9999;
 
-        // =====================================================
-        // AI EFFICIENCY SCORE ENGINE v2.0 (Modern Minimal)
-        // Credibility-aware algorithm with review weighting
-        // =====================================================
-        const scoreData = {
-          rating: ratingValue,
-          reviewCount: reviews,
-          enrolledCount: enrolled,
-          runtimeSeconds: runtime,
-          lectureCount: lectures,
-          ageInDays: ageInDays,
-          isExam: isExam
-        };
-        
-        const score = calculateOverallScore(scoreData);
-
-        // Modern Minimal Color Palette (Cyan/Violet/Amber/Red)
-        const scoreColor = getScoreColor(score);
-        const cardStyling = getCardStyling(score, isExam);
+        // Scoring Engine Call (Assuming calculation functions exist in global scope via scoreEngine.js)
+        const scoreData = { rating: ratingValue, reviewCount: reviews, enrolledCount: enrolled, runtimeSeconds: runtime, lectureCount: lectures, ageInDays: ageInDays, isExam: isExam };
+        const score = typeof calculateOverallScore === 'function' ? calculateOverallScore(scoreData) : 0;
+        const scoreColor = typeof getScoreColor === 'function' ? getScoreColor(score) : '#64748b';
+        const cardStyling = typeof getCardStyling === 'function' ? getCardStyling(score, isExam) : {background: '#fff', border: '1px solid #ccc', shadow: 'none'};
 
         courseContainer.style.background = cardStyling.background;
         courseContainer.style.border = cardStyling.border;
@@ -193,174 +132,178 @@ function fetchCourses() {
         courseContainer.style.boxShadow = cardStyling.shadow;
         courseContainer.style.padding = '8px';
 
-        // =====================================================
-        // TRUST TIER CLASSIFICATION (Credibility-based)
-        // =====================================================
-        let trustTier = 'Standard Track';
-        let trustColor = '#64748b';
-        const reviewCredibility = calculateReviewCredibility(reviews);
-        
-        if (ratingValue >= 4.7 && reviewCredibility >= 0.8) { trustTier = 'Elite Rank Class'; trustColor = '#06b6d4'; }
-        else if (ratingValue >= 4.4 && reviewCredibility >= 0.6) { trustTier = 'Highly Acclaimed'; trustColor = '#8b5cf6'; }
-        else if (ratingValue >= 4.0 && reviewCredibility >= 0.4) { trustTier = 'Good Standing'; trustColor = '#64748b'; }
-        else if (ratingValue >= 4.0) { trustTier = 'Emerging Quality'; trustColor = '#f59e0b'; }
-
-        const ratingDashboardHtml = `
-          <div title="Course Rating Metrics" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.75); padding:8px 12px; border-radius:10px; margin-bottom:10px; border:1px solid rgba(0,0,0,0.05); cursor:help;">
-            <div>
-              <div style="font-size:17px; font-weight:800; color:#ea580c; display:flex; align-items:center; gap:4px; line-height:1;">
-                ⭐ ${rating} <span style="font-size:11px; font-weight:500; color:#64748b;">/ 5.0</span>
-              </div>
-              <div style="font-size:11px; color:#64748b; font-weight:600; margin-top:2px;">
-                ${setSeparator(reviews, lang)} reviews
-              </div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:11px; font-weight:800; color:${trustColor}; text-transform:uppercase; letter-spacing:0.3px;">
-                ${trustTier}
-              </div>
-              <div style="font-size:10px; color:#94a3b8; font-weight:500;">
-                Community Validated
-              </div>
-            </div>
-          </div>
-        `;
-
-        // =====================================================
-        // COGNITIVE STUDY COMMITMENT TIMELINE GENERATOR
-        // =====================================================
+        // Badges & String Labels (Separated text from HTML for CSV export)
+        let commitmentLabel = 'N/A';
         let commitmentBadge = '';
         if (runtime > 0) {
-          if (runtimeHours <= 5) {
-            commitmentBadge = `<div class="impr__badge" title="Estimated Course Completion Timeline" style="background:#f0fdfa; color:#0d9488; border-color:#99f6e4; font-weight:600;">🕒 Sprint Study (1-2 Days)</div>`;
-          } else if (runtimeHours <= 20) {
-            commitmentBadge = `<div class="impr__badge" title="Estimated Course Completion Timeline" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe; font-weight:600;">🕒 Balanced Pace (1-2 Weeks)</div>`;
-          } else {
-            commitmentBadge = `<div class="impr__badge" title="Estimated Course Completion Timeline" style="background:#faf5ff; color:#7c3aed; border-color:#e9d5ff; font-weight:600;">🕒 Deep Commitment (3-6 Weeks)</div>`;
-          }
+          if (runtimeHours <= 5) { commitmentLabel = 'Sprint Study (1-2 Days)'; commitmentBadge = `<div class="impr__badge" style="background:#f0fdfa; color:#0d9488; border-color:#99f6e4;">🕒 ${commitmentLabel}</div>`; }
+          else if (runtimeHours <= 20) { commitmentLabel = 'Balanced Pace (1-2 Weeks)'; commitmentBadge = `<div class="impr__badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">🕒 ${commitmentLabel}</div>`; }
+          else { commitmentLabel = 'Deep Commitment (3-6 Weeks)'; commitmentBadge = `<div class="impr__badge" style="background:#faf5ff; color:#7c3aed; border-color:#e9d5ff;">🕒 ${commitmentLabel}</div>`; }
         }
 
-        // Freshness Badge Rendering Setup
-        const freshness = getFreshnessStatus(updatedDate);
+        const freshnessStatus = getFreshnessStatus(updatedDate);
         let freshnessLabel = 'Legacy System';
         let freshnessBg = '#fef2f2'; let freshnessColor = '#991b1b'; let freshnessBorder = '#fee2e2';
+        if (ageInDays <= 90) { freshnessLabel = 'Current Ecosystem'; freshnessBg = '#f0fdf4'; freshnessColor = '#166534'; freshnessBorder = '#bbf7d0'; } 
+        else if (ageInDays <= 365) { freshnessLabel = 'Recent Lifecycle'; freshnessBg = '#fefce8'; freshnessColor = '#854d0e'; freshnessBorder = '#fef08a'; }
+        const freshnessBadge = `<div class="impr__badge" style="background:${freshnessBg}; color:${freshnessColor}; border-color:${freshnessBorder};">🔄 ${freshnessLabel}</div>`;
 
-        if (ageInDays <= 90) {
-          freshnessLabel = 'Current Ecosystem'; freshnessBg = '#f0fdf4'; freshnessColor = '#166534'; freshnessBorder = '#bbf7d0';
-        } else if (ageInDays <= 365) {
-          freshnessLabel = 'Recent Lifecycle'; freshnessBg = '#fefce8'; freshnessColor = '#854d0e'; freshnessBorder = '#fef08a';
-        }
-        const freshnessBadge = `<div class="impr__badge" title="Content Maintenance Lifecycle Status" style="background:${freshnessBg}; color:${freshnessColor}; border-color:${freshnessBorder}; font-weight:700;">🔄 ${freshnessLabel}</div>`;
-
-        // Delivery pace evaluation setup
+        let lectureStyleLabel = 'N/A';
         let lectureStyleBadge = '';
         if (runtime > 0 && lectures > 0) {
-          const avgMinutesPerLecture = Math.round((runtime / 60) / lectures);
-          if (avgMinutesPerLecture <= 5) {
-            lectureStyleBadge = `<div class="impr__badge" title="Average Structure of Lessons" style="background:#ccfbf1; color:#0f766e; border-color:#99f6e4; font-weight:600;">⚡ Bite-Sized Lectures (~${avgMinutesPerLecture}m)</div>`;
-          } else if (avgMinutesPerLecture <= 13) {
-            lectureStyleBadge = `<div class="impr__badge" title="Average Structure of Lessons" style="background:#e0e7ff; color:#4338ca; border-color:#c7d2fe; font-weight:600;">📈 Balanced Lectures (~${avgMinutesPerLecture}m)</div>`;
-          } else {
-            lectureStyleBadge = `<div class="impr__badge" title="Average Structure of Lessons" style="background:#f0f9ff; color:#0369a1; border-color:#bae6fd; font-weight:600;">📚 Theoretical Deep Dive (~${avgMinutesPerLecture}m)</div>`;
-          }
+          const avgMinutes = Math.round((runtime / 60) / lectures);
+          if (avgMinutes <= 5) { lectureStyleLabel = `Bite-Sized (~${avgMinutes}m)`; lectureStyleBadge = `<div class="impr__badge" style="background:#ccfbf1; color:#0f766e; border-color:#99f6e4;">⚡ ${lectureStyleLabel}</div>`; }
+          else if (avgMinutes <= 13) { lectureStyleLabel = `Balanced (~${avgMinutes}m)`; lectureStyleBadge = `<div class="impr__badge" style="background:#e0e7ff; color:#4338ca; border-color:#c7d2fe;">📈 ${lectureStyleLabel}</div>`; }
+          else { lectureStyleLabel = `Theoretical Deep Dive (~${avgMinutes}m)`; lectureStyleBadge = `<div class="impr__badge" style="background:#f0f9ff; color:#0369a1; border-color:#bae6fd;">📚 ${lectureStyleLabel}</div>`; }
         }
 
-        // Platform Tag Handling
         let udemyRibbon = '';
         const rawBadge = (json.badge_family || json.badge_info?.badge_family || '').toLowerCase();
         if (rawBadge) {
-          let badgeBg = '#f3e8ff'; let badgeColor = '#6b21a8'; let badgeBorder = '#d8b4fe';
           let badgeLabel = json.badge_info?.badge_text || json.badge_family;
-          if (rawBadge.includes('bestseller') || rawBadge.includes('best_seller')) {
-            badgeBg = '#fff7ed'; badgeColor = '#c2410c'; badgeBorder = '#fdba74'; badgeLabel = '🔥 Bestseller';
-          } else if (rawBadge.includes('highest_rated') || rawBadge.includes('highest-rated')) {
-            badgeBg = '#fefce8'; badgeColor = '#a16207'; badgeBorder = '#fde047'; badgeLabel = '⭐ Highest Rated';
-          } else if (rawBadge.includes('new')) {
-            badgeBg = '#ecfeff'; badgeColor = '#155e75'; badgeBorder = '#67e8f9'; badgeLabel = '⚡ Hot & New';
-          }
-          udemyRibbon = `<div class="impr__badge" title="Official Udemy Market Label" style="background:${badgeBg}; color:${badgeColor}; border-color:${badgeBorder}; font-weight:700;">${badgeLabel}</div>`;
+          udemyRibbon = `<div class="impr__badge" style="background:#f3e8ff; color:#6b21a8; border-color:#d8b4fe;">${badgeLabel}</div>`;
         }
 
-        let tacticalDecisionTag = '';
-        if (score >= 85 && (freshness === 'green' || freshness === 'yellow')) {
-          tacticalDecisionTag = `<div class="impr__badge" title="AI Recommendation Category" style="background:linear-gradient(135deg, #f59e0b, #ef4444); color:white; border:none; font-weight:800; font-size:10px;">🚀 Top Pick: Premium Investment</div>`;
-        } else if (score >= 72 && runtimeHours < 8 && !isExam) {
-          tacticalDecisionTag = `<div class="impr__badge" title="AI Recommendation Category" style="background:linear-gradient(135deg, #06b6d4, #3b82f6); color:white; border:none; font-weight:800; font-size:10px;">⚡ High Velocity Quick Win</div>`;
-        } else if (score < 45 && freshness === 'red') {
-          tacticalDecisionTag = `<div class="impr__badge" title="AI Recommendation Category" style="background:#e2e8f0; color:#475569; border-color:#cbd5e1; font-weight:700; font-size:10px;">🛑 Deprioritized (Outdated Archive)</div>`;
-        }
+        // =====================================================
+        // CSV DATABASE REGISTRATION (Background Save)
+        // =====================================================
+        saveToDatabase({
+          id: courseId,
+          title: courseTitle,
+          instructor: instructors,
+          score: score,
+          rating: ratingValue,
+          reviews: reviews,
+          enrolled: enrolled,
+          durationHours: runtimeHours.toFixed(2),
+          lectures: lectures,
+          createdDate: createdDate ? formatDateCustom(createdDate) : 'Unknown',
+          updatedDate: updatedDate ? formatDateCustom(updatedDate) : 'Unknown',
+          freshness: freshnessLabel,
+          pace: lectureStyleLabel,
+          commitment: commitmentLabel,
+          category: category,
+          subcategory: subcategory,
+          isExam: isExam
+        });
 
+        // DOM Rendering...
         let runtimeBg = '#ecfdf5'; let runtimeColor = '#0d7377'; let runtimeBorder = '#a7f3d0';
         if (runtimeHours >= 40) { runtimeBg = '#f3f0ff'; runtimeColor = '#6b21a8'; runtimeBorder = '#d8b4fe'; }
 
-        // =====================================================
-        // INTEGRATED RENDERING INTERFACE LAYER
-        // =====================================================
         courseCustomDiv.innerHTML = `
-          <div class="impr__recommendation-bar" style="height:6px; width:${score}%; background:${scoreColor}; border-radius:999px; margin-bottom:8px; transition:0.3s;"></div>
-          <div style="font-size:14px; font-weight:800; color:${scoreColor}; margin-bottom:8px; letter-spacing:0.3px; font-family:'Fira Code',monospace;">
-            Score ${score}/100
-          </div>
-
-          ${ratingDashboardHtml}
-
-          <div title="Assigned Instructors" style="margin:4px 0 8px 0; font-size:11px; font-weight:700; color:#475569; cursor:help;">
-            👨‍🏫 ${instructors}
-          </div>
-
+          <div class="impr__recommendation-bar" style="height:6px; width:${score}%; background:${scoreColor}; border-radius:999px; margin-bottom:8px;"></div>
+          <div style="font-size:14px; font-weight:800; color:${scoreColor}; margin-bottom:8px;">Score ${score}/100</div>
+          
+          <div style="margin:4px 0 8px 0; font-size:11px; font-weight:700; color:#475569;">👨‍🏫 ${instructors}</div>
           <div class="impr__stats">
-            <div class="impr__badge" title="Total Enrolled Students" style="background:#f8fafc; color:#1e293b; border-color:#e2e8f0; font-weight:600; font-family:'Fira Code',monospace;">👥 ${setSeparator(enrolled, lang)}</div>
-            ${runtime > 0 ? `<div class="impr__badge" title="Total Video Course Runtime" style="background:${runtimeBg}; color:${runtimeColor}; border-color:${runtimeBorder}; font-weight:600; font-family:'Fira Code',monospace;">⏱ ${parseRuntime(runtime, lang)}</div>` : ''}
-            ${runtime > 0 && lectures > 0 ? `<div class="impr__badge" title="Total Published Lessons" style="background:#fff5f5; color:#991b1b; border-color:#fee2e2; font-weight:600; font-family:'Fira Code',monospace;">🎥 ${lectures}</div>` : ''}
-            <div class="impr__badge" title="Course Audio Language" style="background:#f8fafc; color:#1e293b; border-color:#e2e8f0; font-weight:600;">🌍 ${locale}</div>
-            ${createdDate ? `<div class="impr__badge" title="Original Course Creation Date" style="background:#faf5ff; color:#6b21a8; border-color:#f3e8ff; font-weight:600; font-family:'Fira Code',monospace;">📅 ${formatDateCustom(createdDate)}</div>` : ''}
-            ${updatedDate ? `<div class="impr__badge" title="Last Revised Date" style="background:#f0f9ff; color:#1d4ed8; border-color:#e0f2fe; font-weight:700; font-family:'Fira Code',monospace;">🔄 ${formatDateCustom(updatedDate)}</div>` : ''}
+            <div class="impr__badge" style="background:#f8fafc; border-color:#e2e8f0;">👥 ${setSeparator(enrolled, lang)}</div>
+            ${runtime > 0 ? `<div class="impr__badge" style="background:${runtimeBg}; color:${runtimeColor}; border-color:${runtimeBorder};">⏱ ${parseRuntime(runtime, lang)}</div>` : ''}
+            ${runtime > 0 && lectures > 0 ? `<div class="impr__badge" style="background:#fff5f5; color:#991b1b; border-color:#fee2e2;">🎥 ${lectures}</div>` : ''}
+            ${createdDate ? `<div class="impr__badge" style="background:#faf5ff; color:#6b21a8; border-color:#f3e8ff;">📅 Created: ${formatDateCustom(createdDate)}</div>` : ''}
             
             ${freshnessBadge}
             ${lectureStyleBadge}
             ${commitmentBadge}
             ${udemyRibbon}
-            ${tacticalDecisionTag}
-
-            ${isExam ? `<div class="impr__badge" title="Evaluation Layout Model" style="background:#ea580c; color:white; border-color:#c2410c; font-weight:800;">📝 Practice Test Engine</div>` : ''}
+            ${isExam ? `<div class="impr__badge" style="background:#ea580c; color:white; border-color:#c2410c;">📝 Practice Test</div>` : ''}
           </div>
         `;
-
-        // Graphic Overlays setup onto thumbnail container wrappers
-        if (imageWrapper && runtime > 0) {
-          const runtimeSpan = document.createElement('span');
-          runtimeSpan.classList.add('card__thumb-overlay', 'card__course-runtime', 'hover-hide', 'js-removepartial');
-          runtimeSpan.style.background = 'rgba(1, 40, 60, 0.92)';
-          runtimeSpan.style.color = '#06b6d4';
-          runtimeSpan.style.fontSize = '11px';
-          runtimeSpan.style.fontWeight = '700';
-          runtimeSpan.style.padding = '4px 8px';
-          runtimeSpan.style.borderRadius = '6px';
-          runtimeSpan.style.fontFamily = '"Fira Code",monospace';
-          runtimeSpan.title = "Runtime Length Overlay";
-          runtimeSpan.innerHTML = `⏱ ${parseRuntime(runtime, lang)}`;
-          imageWrapper.appendChild(runtimeSpan);
-        }
-
-        if (imageWrapper && localeCode.slice(0, 2) !== 'en') {
-          const localeSpan = document.createElement('span');
-          localeSpan.classList.add('card__thumb-overlay', 'card__course-locale', 'hover-hide', 'js-removepartial');
-          localeSpan.style.background = 'rgba(30, 41, 59, 0.92)';
-          localeSpan.style.color = '#f1f5f9';
-          localeSpan.style.fontSize = '11px';
-          localeSpan.style.fontWeight = '600';
-          localeSpan.style.padding = '4px 8px';
-          localeSpan.style.borderRadius = '6px';
-          localeSpan.title = "Language Context Overlay";
-          localeSpan.innerHTML = `<span style="margin-right:3px;">${getFlagEmoji(localeCode.slice(-2))}</span>${locale}`;
-          imageWrapper.appendChild(localeSpan);
-        }
       })
       .catch(error => {
         courseCustomDiv.classList.add('card__nodata');
         courseCustomDiv.innerHTML += `<div><b>${error}</b><br>${i18n[lang].notavailable}</div>`;
       });
   });
+}
+
+// ======================================================
+// CSV EXPORT & DATABASE ENGINES
+// ======================================================
+function saveToDatabase(courseRecord) {
+  // Pull existing DB from LocalStorage (persists across paginated pages)
+  let db = JSON.parse(localStorage.getItem('udemyCourseDB') || '{}');
+  
+  // Insert or Update the record using Course ID as the key
+  db[courseRecord.id] = courseRecord;
+  
+  // Save back to LocalStorage
+  localStorage.setItem('udemyCourseDB', JSON.stringify(db));
+  
+  // Update UI Button counter
+  updateExportButton(Object.keys(db).length);
+}
+
+function createExportButton() {
+  if (document.getElementById('impr-export-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'impr-export-btn';
+  btn.onclick = generateCSV;
+  document.body.appendChild(btn);
+  
+  const db = JSON.parse(localStorage.getItem('udemyCourseDB') || '{}');
+  updateExportButton(Object.keys(db).length);
+}
+
+function updateExportButton(count) {
+  const btn = document.getElementById('impr-export-btn');
+  if (btn) btn.innerHTML = `⬇️ Download CSV (${count} Scraped)`;
+}
+
+function generateCSV() {
+  const db = JSON.parse(localStorage.getItem('udemyCourseDB') || '{}');
+  const courses = Object.values(db);
+  
+  if (courses.length === 0) {
+    alert('No courses have been scraped yet. Please let the page load.');
+    return;
+  }
+
+  // Define Headers
+  const headers = [
+    'Course ID', 'Course Name', 'Instructor', 'AI Score', 'Rating', 
+    'Reviews', 'Enrolled Students', 'Duration (Hours)', 'Sessions', 
+    'Created Date', 'Updated Date', 'Freshness', 'Pacing Style', 
+    'Commitment Level', 'Category', 'Subcategory', 'Is Exam'
+  ];
+  
+  // FIX 1: Use actual carriage return/newline \r\n instead of escaped \\n
+  let csvContent = headers.join(',') + '\r\n';
+  
+  // Iterate and properly escape strings containing commas
+  courses.forEach(c => {
+    const row = [
+      c.id,
+      `"${c.title.replace(/"/g, '""')}"`,
+      `"${c.instructor.replace(/"/g, '""')}"`,
+      c.score,
+      c.rating,
+      c.reviews,
+      c.enrolled,
+      c.durationHours,
+      c.lectures,
+      c.createdDate,
+      c.updatedDate,
+      `"${c.freshness}"`,
+      `"${c.pace}"`,
+      `"${c.commitment}"`,
+      `"${c.category}"`,
+      `"${c.subcategory}"`,
+      c.isExam
+    ];
+    // FIX 2: Apply the carriage return here as well
+    csvContent += row.join(',') + '\r\n';
+  });
+
+  // FIX 3: Add UTF-8 BOM so Excel automatically formats columns correctly
+  const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'myLearningCourses.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 // ======================================================
@@ -378,7 +321,7 @@ function listenForArchiveToggle() {
 }
 
 function setSeparator(int, langCode) {
-  return int.toString().replace(/\B(?=(\d{3})+(?!\d))/g, i18n[langCode].separator);
+  return int.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, i18n[langCode].separator);
 }
 
 function parseDate(dateString) {
@@ -395,12 +338,6 @@ function getFreshnessStatus(updatedDate) {
   return 'red';
 }
 
-function setFreshnessClass(targetElement, status) {
-  if (!targetElement) return;
-  targetElement.classList.remove('impr__freshness--green', 'impr__freshness--yellow', 'impr__freshness--red');
-  targetElement.classList.add(`impr__freshness--${status}`);
-}
-
 function getLang(langCode) {
   return i18n.hasOwnProperty(langCode) ? langCode : 'en-us';
 }
@@ -414,18 +351,6 @@ function parseRuntime(seconds, langCode) {
 
 function loadTranslations() {
   return {
-    'en-us': {
-      overview: 'Course overview',
-      enrolled: 'students',
-      notavailable: 'Course info configuration missing',
-      separator: ',',
-      hours: 'h',
-      mins: 'm'
-    }
+    'en-us': { overview: 'Course overview', enrolled: 'students', notavailable: 'Course info missing', separator: ',', hours: 'h', mins: 'm' }
   };
-}
-
-function getFlagEmoji(countryCode) {
-  const codePoints = countryCode.toUpperCase().split('').map(char => 127397 + char.charCodeAt());
-  return String.fromCodePoint(...codePoints);
 }
