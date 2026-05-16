@@ -167,7 +167,9 @@ function fetchCourses() {
         'is_paid',
         'price',
         'badge_family',
-        'badge_info'
+        'badge_info',
+        'primary_category',
+        'primary_subcategory'
       ].join(',');
 
     fetch(fetchUrl)
@@ -193,6 +195,8 @@ function fetchCourses() {
         const createdDate = parseDate(json.created);
         const updatedDate = parseDate(json.last_update_date || json.created);
         const isExam = runtime === 0;
+        const category = json.primary_category?.title || 'Uncategorized';
+        const subcategory = json.primary_subcategory?.title || 'Uncategorized';
 
         const ageInDays = updatedDate ? Math.floor((Date.now() - updatedDate.getTime()) / 86400000) : 9999;
 
@@ -355,6 +359,8 @@ function fetchCourses() {
           commitment: commitmentLabel,
           tacticalDecision: tacticalDecisionLabel,
           isExam: isExam,
+          category: category,
+          subcategory: subcategory,
           link: `https://www.udemy.com/course/${courseId}/`
         });
 
@@ -467,7 +473,7 @@ function generateCSV() {
     'Course ID', 'Course Name', 'Instructor', 'AI Efficiency Score', 'Rating', 
     'Reviews Count', 'Enrolled Students', 'Duration (Hours)', 'Lectures Count', 'Language', 
     'Created Date', 'Updated Date', 'Freshness Status', 'Pacing Model', 
-    'Commitment Level', 'AI Recommendation', 'Is Practice Test', 'Details URL'
+    'Commitment Level', 'AI Recommendation', 'Is Practice Test', 'Category', 'Sub-category', 'Details URL'
   ];
   
   let csvContent = headers.join(',') + '\r\n';
@@ -491,6 +497,8 @@ function generateCSV() {
       `"${c.commitment}"`,
       `"${c.tacticalDecision || 'Standard Target'}"`,
       c.isExam,
+      `"${c.category || 'Uncategorized'}"`,
+      `"${c.subcategory || 'Uncategorized'}"`,
       `"${(c.link || '').replace(/"/g, '""')}"`
     ];
     csvContent += row.join(',') + '\r\n';
