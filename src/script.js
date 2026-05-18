@@ -21,9 +21,8 @@ if (!document.getElementById('impr-dynamic-styles')) {
       font-size: 11px;
       margin: 2px;
       white-space: nowrap;
-      cursor: help; /* Changes cursor to a help pointer to indicate hovering provides information */
+      cursor: help;
     }
-    /* Explicitly kill any pseudo-element layout elements creating black arrows or speech artifacts on hover */
     .impr__badge:hover::before,
     .impr__badge:hover::after {
       display: none !important;
@@ -66,7 +65,6 @@ if (!document.getElementById('impr-dynamic-styles')) {
 const i18n = loadTranslations();
 const lang = getLang(document.documentElement.lang);
 
-// Initialize Floating CSV Downloader
 createExportButton();
 
 const mutationObserver = new MutationObserver(fetchCourses);
@@ -164,12 +162,7 @@ function fetchCourses() {
         'locale',
         'visible_instructors',
         'num_published_lectures',
-        'is_paid',
-        'price',
-        'badge_family',
-        'badge_info',
-        'primary_category',
-        'primary_subcategory'
+        'price'
       ].join(',');
 
     fetch(fetchUrl)
@@ -195,15 +188,16 @@ function fetchCourses() {
         const createdDate = parseDate(json.created);
         const updatedDate = parseDate(json.last_update_date || json.created);
         const isExam = runtime === 0;
-        const category = json.primary_category?.title || 'Uncategorized';
-        const subcategory = json.primary_subcategory?.title || 'Uncategorized';
+        
+        // Price metrics
+        const rawPrice = json.price || 'Free';
+        // Strip symbols for CSV (leaves only digits, decimals, and commas)
+        const numericPriceCsv = rawPrice.toLowerCase() === 'free' ? '0' : rawPrice.replace(/[^\d.,]/g, '');
 
         const ageInDays = updatedDate ? Math.floor((Date.now() - updatedDate.getTime()) / 86400000) : 9999;
 
-        // =====================================================
-        // AI EFFICIENCY SCORE ENGINE v2.0 (Modern Minimal)
-        // Credibility-aware algorithm with review weighting
-        // =====================================================
+        // Note: The below functions (calculateOverallScore, getScoreColor, getCardStyling, calculateReviewCredibility) 
+        // rely on your previously existing environment methods. If they are missing, you will need to include them.
         const scoreData = {
           rating: ratingValue,
           reviewCount: reviews,
@@ -213,12 +207,9 @@ function fetchCourses() {
           ageInDays: ageInDays,
           isExam: isExam
         };
-        
-        const score = calculateOverallScore(scoreData);
-
-        // Modern Minimal Color Palette (Cyan/Violet/Amber/Red)
-        const scoreColor = getScoreColor(score);
-        const cardStyling = getCardStyling(score, isExam);
+        const score = typeof calculateOverallScore === 'function' ? calculateOverallScore(scoreData) : 0;
+        const scoreColor = typeof getScoreColor === 'function' ? getScoreColor(score) : '#94a3b8';
+        const cardStyling = typeof getCardStyling === 'function' ? getCardStyling(score, isExam) : { background: '#fff', border: '1px solid #e2e8f0', shadow: 'none' };
 
         courseContainer.style.background = cardStyling.background;
         courseContainer.style.border = cardStyling.border;
@@ -227,11 +218,11 @@ function fetchCourses() {
         courseContainer.style.padding = '8px';
 
         // =====================================================
-        // TRUST TIER CLASSIFICATION (Credibility-based)
+        // TRUST TIER CLASSIFICATION
         // =====================================================
         let trustTier = 'Standard Track';
         let trustColor = '#64748b';
-        const reviewCredibility = calculateReviewCredibility(reviews);
+        const reviewCredibility = typeof calculateReviewCredibility === 'function' ? calculateReviewCredibility(reviews) : 0.5;
         
         if (ratingValue >= 4.7 && reviewCredibility >= 0.8) { trustTier = 'Elite Rank Class'; trustColor = '#06b6d4'; }
         else if (ratingValue >= 4.4 && reviewCredibility >= 0.6) { trustTier = 'Highly Acclaimed'; trustColor = '#8b5cf6'; }
@@ -260,7 +251,7 @@ function fetchCourses() {
         `;
 
         // =====================================================
-        // COGNITIVE STUDY COMMITMENT TIMELINE GENERATOR
+        // VISUAL LABELS & RIBBONS
         // =====================================================
         let commitmentLabel = 'N/A';
         let commitmentBadge = '';
@@ -277,7 +268,6 @@ function fetchCourses() {
           }
         }
 
-        // Freshness Badge Rendering Setup
         const freshness = getFreshnessStatus(updatedDate);
         let freshnessLabel = 'Legacy System';
         let freshnessBg = '#fef2f2'; let freshnessColor = '#991b1b'; let freshnessBorder = '#fee2e2';
@@ -289,7 +279,6 @@ function fetchCourses() {
         }
         const freshnessBadge = `<div class="impr__badge" title="Content Maintenance Lifecycle Status" style="background:${freshnessBg}; color:${freshnessColor}; border-color:${freshnessBorder}; font-weight:700;">🔄 ${freshnessLabel}</div>`;
 
-        // Delivery pace evaluation setup
         let lectureStyleLabel = 'N/A';
         let lectureStyleBadge = '';
         if (runtime > 0 && lectures > 0) {
@@ -304,22 +293,6 @@ function fetchCourses() {
             lectureStyleLabel = `Theoretical Deep Dive (~${avgMinutesPerLecture}m)`;
             lectureStyleBadge = `<div class="impr__badge" title="Average Structure of Lessons" style="background:#f0f9ff; color:#0369a1; border-color:#bae6fd; font-weight:600;">📚 ${lectureStyleLabel}</div>`;
           }
-        }
-
-        // Platform Tag Handling
-        let udemyRibbon = '';
-        const rawBadge = (json.badge_family || json.badge_info?.badge_family || '').toLowerCase();
-        if (rawBadge) {
-          let badgeBg = '#f3e8ff'; let badgeColor = '#6b21a8'; let badgeBorder = '#d8b4fe';
-          let badgeLabel = json.badge_info?.badge_text || json.badge_family;
-          if (rawBadge.includes('bestseller') || rawBadge.includes('best_seller')) {
-            badgeBg = '#fff7ed'; badgeColor = '#c2410c'; badgeBorder = '#fdba74'; badgeLabel = '🔥 Bestseller';
-          } else if (rawBadge.includes('highest_rated') || rawBadge.includes('highest-rated')) {
-            badgeBg = '#fefce8'; badgeColor = '#a16207'; badgeBorder = '#fde047'; badgeLabel = '⭐ Highest Rated';
-          } else if (rawBadge.includes('new')) {
-            badgeBg = '#ecfeff'; badgeColor = '#155e75'; badgeBorder = '#67e8f9'; badgeLabel = '⚡ Hot & New';
-          }
-          udemyRibbon = `<div class="impr__badge" title="Official Udemy Market Label" style="background:${badgeBg}; color:${badgeColor}; border-color:${badgeBorder}; font-weight:700;">${badgeLabel}</div>`;
         }
 
         let tacticalDecisionLabel = 'Standard Target';
@@ -338,6 +311,9 @@ function fetchCourses() {
         let runtimeBg = '#ecfdf5'; let runtimeColor = '#0d7377'; let runtimeBorder = '#a7f3d0';
         if (runtimeHours >= 40) { runtimeBg = '#f3f0ff'; runtimeColor = '#6b21a8'; runtimeBorder = '#d8b4fe'; }
 
+        // The UI retains the raw price string to display standard currency formatting
+        const priceRibbon = `<div class="impr__badge" title="Course Price" style="background:#fef3c7; color:#d97706; border-color:#f59e0b; font-weight:700; font-size:12px; padding:4px 10px; margin-bottom:6px; border-radius:4px; display:inline-block; border:1px solid;">${rawPrice}</div>`;
+
         // =====================================================
         // SAVE TO LOCAL DATABASE FOR EXPORT ENGINE
         // =====================================================
@@ -345,22 +321,21 @@ function fetchCourses() {
           id: courseId,
           title: courseTitle,
           instructor: instructors,
+          price: numericPriceCsv, // Stripped price exclusively for CSV
           score: score,
+          tacticalDecision: tacticalDecisionLabel,
           rating: ratingValue,
           reviews: reviews,
           enrolled: enrolled,
+          isExam: isExam ? 'Yes' : 'No',
           durationHours: runtimeHours.toFixed(2),
           lectures: lectures,
+          pace: lectureStyleLabel,
+          commitment: commitmentLabel,
           language: locale,
           createdDate: createdDate ? formatDateCustom(createdDate) : 'Unknown',
           updatedDate: updatedDate ? formatDateCustom(updatedDate) : 'Unknown',
           freshness: freshnessLabel,
-          pace: lectureStyleLabel,
-          commitment: commitmentLabel,
-          tacticalDecision: tacticalDecisionLabel,
-          isExam: isExam,
-          category: category,
-          subcategory: subcategory,
           link: `https://www.udemy.com/course/${courseId}/`
         });
 
@@ -380,6 +355,7 @@ function fetchCourses() {
           </div>
 
           <div class="impr__stats">
+            ${priceRibbon}
             <div class="impr__badge" title="Total Enrolled Students" style="background:#f8fafc; color:#1e293b; border-color:#e2e8f0; font-weight:600; font-family:'Fira Code',monospace;">👥 ${setSeparator(enrolled, lang)}</div>
             ${runtime > 0 ? `<div class="impr__badge" title="Total Video Course Runtime" style="background:${runtimeBg}; color:${runtimeColor}; border-color:${runtimeBorder}; font-weight:600; font-family:'Fira Code',monospace;">⏱ ${parseRuntime(runtime, lang)}</div>` : ''}
             ${runtime > 0 && lectures > 0 ? `<div class="impr__badge" title="Total Published Lessons" style="background:#fff5f5; color:#991b1b; border-color:#fee2e2; font-weight:600; font-family:'Fira Code',monospace;">🎥 ${lectures}</div>` : ''}
@@ -390,14 +366,12 @@ function fetchCourses() {
             ${freshnessBadge}
             ${lectureStyleBadge}
             ${commitmentBadge}
-            ${udemyRibbon}
             ${tacticalDecisionTag}
 
             ${isExam ? `<div class="impr__badge" title="Evaluation Layout Model" style="background:#ea580c; color:white; border-color:#c2410c; font-weight:800;">📝 Practice Test Engine</div>` : ''}
           </div>
         `;
 
-        // Graphic Overlays setup onto thumbnail container wrappers
         if (imageWrapper && runtime > 0) {
           const runtimeSpan = document.createElement('span');
           runtimeSpan.classList.add('card__thumb-overlay', 'card__course-runtime', 'hover-hide', 'js-removepartial');
@@ -469,11 +443,13 @@ function generateCSV() {
     return;
   }
 
+  // Updated headers matching the stripped-down format
   const headers = [
-    'Course ID', 'Course Name', 'Instructor', 'AI Efficiency Score', 'Rating', 
-    'Reviews Count', 'Enrolled Students', 'Duration (Hours)', 'Lectures Count', 'Language', 
-    'Created Date', 'Updated Date', 'Freshness Status', 'Pacing Model', 
-    'Commitment Level', 'AI Recommendation', 'Is Practice Test', 'Category', 'Sub-category', 'Details URL'
+    'Course ID', 'Course Name', 'Instructor', 'Price',
+    'AI Efficiency Score', 'AI Recommendation', 'Rating', 'Reviews Count', 'Enrolled Students', 
+    'Is Practice Test', 'Duration (Hours)', 'Lectures Count', 'Pacing Model', 'Commitment Level', 'Language', 
+    'Created Date', 'Updated Date', 'Freshness Status', 
+    'Details URL'
   ];
   
   let csvContent = headers.join(',') + '\r\n';
@@ -481,30 +457,28 @@ function generateCSV() {
   courses.forEach(c => {
     const row = [
       c.id,
-      `"${c.title.replace(/"/g, '""')}"`,
-      `"${c.instructor.replace(/"/g, '""')}"`,
-      c.score,
-      c.rating,
-      c.reviews,
-      c.enrolled,
-      c.durationHours,
-      c.lectures,
-      `"${c.language}"`,
-      c.createdDate,
-      c.updatedDate,
-      `"${c.freshness}"`,
-      `"${c.pace}"`,
-      `"${c.commitment}"`,
-      `"${c.tacticalDecision || 'Standard Target'}"`,
-      c.isExam,
-      `"${c.category || 'Uncategorized'}"`,
-      `"${c.subcategory || 'Uncategorized'}"`,
+      `"${(c.title || '').replace(/"/g, '""')}"`,
+      `"${(c.instructor || '').replace(/"/g, '""')}"`,
+      `"${(c.price || '0').replace(/"/g, '""')}"`,
+      c.score || 0,
+      `"${(c.tacticalDecision || 'Standard Target').replace(/"/g, '""')}"`,
+      c.rating || 0,
+      c.reviews || 0,
+      c.enrolled || 0,
+      `"${c.isExam || 'No'}"`,
+      c.durationHours || 0,
+      c.lectures || 0,
+      `"${(c.pace || 'N/A').replace(/"/g, '""')}"`,
+      `"${(c.commitment || 'N/A').replace(/"/g, '""')}"`,
+      `"${(c.language || 'Unknown').replace(/"/g, '""')}"`,
+      `"${c.createdDate || 'Unknown'}"`,
+      `"${c.updatedDate || 'Unknown'}"`,
+      `"${c.freshness || 'Unknown'}"`,
       `"${(c.link || '').replace(/"/g, '""')}"`
     ];
     csvContent += row.join(',') + '\r\n';
   });
 
-  // Safe Excel-readable UTF-8 handling using Byte Order Mark (BOM)
   const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -544,12 +518,6 @@ function getFreshnessStatus(updatedDate) {
   return 'red';
 }
 
-function setFreshnessClass(targetElement, status) {
-  if (!targetElement) return;
-  targetElement.classList.remove('impr__freshness--green', 'impr__freshness--yellow', 'impr__freshness--red');
-  targetElement.classList.add(`impr__freshness--${status}`);
-}
-
 function getLang(langCode) {
   return i18n.hasOwnProperty(langCode) ? langCode : 'en-us';
 }
@@ -561,7 +529,6 @@ function parseRuntime(seconds, langCode) {
   return (hours > 0 ? hours.toString() + i18n[langCode].hours : '') + (minutes > 0 ? ' ' + minutes.toString() + i18n[langCode].mins : '');
 }
 
-// Keep translations engine self-contained
 function loadTranslations() {
   return {
     'en-us': {
