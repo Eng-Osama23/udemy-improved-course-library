@@ -162,7 +162,8 @@ function fetchCourses() {
         'locale',
         'visible_instructors',
         'num_published_lectures',
-        'price'
+        'price',
+        'image_480x270' // Added image link field request here
       ].join(',');
 
     fetch(fetchUrl)
@@ -175,6 +176,7 @@ function fetchCourses() {
 
         // Extract metrics
         const courseTitle = json.title || 'Unknown Title';
+        const courseImage = json.image_480x270 || ''; // Extracted link
         const ratingValue = Number(json.rating || 0);
         const rating = ratingValue.toFixed(1);
         const reviews = json.num_reviews || 0;
@@ -196,8 +198,6 @@ function fetchCourses() {
 
         const ageInDays = updatedDate ? Math.floor((Date.now() - updatedDate.getTime()) / 86400000) : 9999;
 
-        // Note: The below functions (calculateOverallScore, getScoreColor, getCardStyling, calculateReviewCredibility) 
-        // rely on your previously existing environment methods. If they are missing, you will need to include them.
         const scoreData = {
           rating: ratingValue,
           reviewCount: reviews,
@@ -311,7 +311,6 @@ function fetchCourses() {
         let runtimeBg = '#ecfdf5'; let runtimeColor = '#0d7377'; let runtimeBorder = '#a7f3d0';
         if (runtimeHours >= 40) { runtimeBg = '#f3f0ff'; runtimeColor = '#6b21a8'; runtimeBorder = '#d8b4fe'; }
 
-        // The UI retains the raw price string to display standard currency formatting
         const priceRibbon = `<div class="impr__badge" title="Course Price" style="background:#fef3c7; color:#d97706; border-color:#f59e0b; font-weight:700; font-size:12px; padding:4px 10px; margin-bottom:6px; border-radius:4px; display:inline-block; border:1px solid;">${rawPrice}</div>`;
 
         // =====================================================
@@ -321,7 +320,7 @@ function fetchCourses() {
           id: courseId,
           title: courseTitle,
           instructor: instructors,
-          price: numericPriceCsv, // Stripped price exclusively for CSV
+          price: numericPriceCsv, 
           score: score,
           tacticalDecision: tacticalDecisionLabel,
           rating: ratingValue,
@@ -336,6 +335,7 @@ function fetchCourses() {
           createdDate: createdDate ? formatDateCustom(createdDate) : 'Unknown',
           updatedDate: updatedDate ? formatDateCustom(updatedDate) : 'Unknown',
           freshness: freshnessLabel,
+          imageUrl: courseImage, // Saved mapped image string
           link: `https://www.udemy.com/course/${courseId}/`
         });
 
@@ -443,13 +443,13 @@ function generateCSV() {
     return;
   }
 
-  // Updated headers matching the stripped-down format
+  // Updated headers containing 'Course Image URL'
   const headers = [
     'Course ID', 'Course Name', 'Instructor', 'Price',
     'AI Efficiency Score', 'AI Recommendation', 'Rating', 'Reviews Count', 'Enrolled Students', 
     'Is Practice Test', 'Duration (Hours)', 'Lectures Count', 'Pacing Model', 'Commitment Level', 'Language', 
     'Created Date', 'Updated Date', 'Freshness Status', 
-    'Details URL'
+    'Course Image URL', 'Details URL'
   ];
   
   let csvContent = headers.join(',') + '\r\n';
@@ -474,6 +474,7 @@ function generateCSV() {
       `"${c.createdDate || 'Unknown'}"`,
       `"${c.updatedDate || 'Unknown'}"`,
       `"${c.freshness || 'Unknown'}"`,
+      `"${(c.imageUrl || '').replace(/"/g, '""')}"`, // Appended values safely escaped
       `"${(c.link || '').replace(/"/g, '""')}"`
     ];
     csvContent += row.join(',') + '\r\n';
