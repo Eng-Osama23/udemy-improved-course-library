@@ -10,28 +10,46 @@
 
     <style>
         :root {
-            --bg: #f4f7fb;
-            --bg-grad-a: #ecf8ff;
-            --bg-grad-b: #fff7e9;
-            --surface: rgba(255, 255, 255, 0.84);
+            color-scheme: light;
+            --bg: #f3f7fc;
+            --bg-grad-a: #e4f2ff;
+            --bg-grad-b: #fff4de;
+            --surface: rgba(255, 255, 255, 0.86);
             --surface-strong: #ffffff;
             --ink: #17212b;
             --muted: #5c6b78;
-            --border: #d8e0e8;
-            --accent: #0086d9;
-            --accent-soft: #e6f5ff;
-            --danger: #cc3a2c;
+            --border: #d6e1eb;
+            --accent: #1177d8;
+            --accent-soft: #e4f2ff;
+            --danger: #b42318;
 
             --tier-cyan: #06b6d4;
-            --tier-violet: #8b5cf6;
-            --tier-amber: #f59e0b;
-            --tier-red: #ef4444;
+            --tier-violet: #7c3aed;
+            --tier-amber: #d97706;
+            --tier-red: #dc2626;
 
             --radius-xl: 18px;
             --radius-lg: 14px;
             --radius-md: 10px;
-            --shadow-soft: 0 10px 30px rgba(17, 24, 39, 0.08);
-            --shadow-card: 0 8px 20px rgba(17, 24, 39, 0.09);
+            --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.09);
+            --shadow-card: 0 10px 24px rgba(15, 23, 42, 0.11);
+        }
+
+        html[data-theme='dark'] {
+            color-scheme: dark;
+            --bg: #0d131d;
+            --bg-grad-a: #132136;
+            --bg-grad-b: #2a1a10;
+            --surface: rgba(21, 31, 46, 0.88);
+            --surface-strong: #122033;
+            --ink: #e2e8f0;
+            --muted: #98a9bc;
+            --border: #2c435f;
+            --accent: #4da3ff;
+            --accent-soft: #163356;
+            --danger: #ef5350;
+            --shadow-soft: 0 14px 34px rgba(3, 8, 18, 0.55);
+            --shadow-card: 0 10px 24px rgba(3, 8, 18, 0.6);
         }
 
         * {
@@ -41,7 +59,7 @@
         html,
         body {
             margin: 0;
-            height: 100%;
+            min-height: 100%;
         }
 
         body {
@@ -52,165 +70,188 @@
                 radial-gradient(1000px 600px at 110% 10%, var(--bg-grad-b), transparent 50%),
                 var(--bg);
             overflow-x: hidden;
-            overflow-y: auto;
         }
 
-       .app {
-    display: grid;
-    transition: grid-template-columns 0.25s ease;
-            grid-template-columns: 330px minmax(0, 1fr);
+        .app {
             min-height: 100vh;
-            height: auto;
-            gap: 14px;
             padding: 14px;
-        }
-
- .app.is-sidebar-collapsed {
-    grid-template-columns: 90px minmax(0, 1fr);
-}
-
-    .app.is-sidebar-collapsed .sidebar {
-    overflow: hidden;
-    padding: 12px 10px;
-    width: 90px;
-    min-width: 90px;
-}
-
-.app.is-sidebar-collapsed #toggleSidebarBtn {
-    width: 100%;
-    justify-content: center;
-    padding: 12px 0;
-}
-
-    .app.is-sidebar-collapsed .sidebar .section,
-    .app.is-sidebar-collapsed .sidebar .brand p,
-    .app.is-sidebar-collapsed .sidebar .section-head,
-    .app.is-sidebar-collapsed .sidebar .list-search,
-    .app.is-sidebar-collapsed .sidebar .scroll-list,
-    .app.is-sidebar-collapsed .sidebar .range-row,
-    .app.is-sidebar-collapsed .sidebar #clearAllBtn {
-        display: none;
-    }
-
-    .app.is-sidebar-collapsed .sidebar-actions {
-        grid-template-columns: 1fr;
-    }
-
-        .sidebar {
-    background: var(--surface);
-    transition: all 0.25s ease;
-            backdrop-filter: blur(14px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 18px;
             display: flex;
             flex-direction: column;
             gap: 14px;
-            overflow-y: auto;
+        }
+
+        .top {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .brand {
-               overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 14px;
+            padding-bottom: 12px;
         }
 
         .brand h1 {
             margin: 0;
             font-family: 'Outfit', sans-serif;
-        
-            line-height: 1.1;
-
-              font-size: 18px;
-    
-    word-break: break-word;
+            font-size: 1.2rem;
+            line-height: 1.2;
         }
 
         .brand p {
-            margin: 8px 0 0;
+            margin: 6px 0 0;
             color: var(--muted);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
 
-        .sidebar-actions {
+        .dashboard-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tabs {
+            display: inline-flex;
+            background: var(--accent-soft);
+            padding: 4px;
+            border-radius: 11px;
+            width: fit-content;
+            gap: 4px;
+        }
+
+        .tab {
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            padding: 7px 12px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .tab.is-active {
+            background: var(--surface-strong);
+            color: var(--ink);
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr auto;
+            gap: 8px;
+        }
+
+        .numeric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(140px, 1fr));
+            gap: 8px;
+        }
+
+        .range-row {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            background: var(--surface-strong);
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
         }
 
-        .btn {
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            padding: 8px 10px;
-            font-family: inherit;
-            font-size: 0.82rem;
-            font-weight: 700;
-            background: #fff;
-            color: var(--ink);
-            cursor: pointer;
-            transition: 0.2s ease;
+        .range-row small {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 4px;
+            font-size: 0.7rem;
         }
 
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+        .filters-wrap {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(220px, 1fr));
+            gap: 8px;
         }
 
-        .btn--primary {
-            background: linear-gradient(140deg, #0aa5ff, #1273de);
-            border-color: transparent;
-            color: #fff;
-        }
-
-        .btn--ghost {
-            background: transparent;
+        .filters-wrap.is-collapsed,
+        .numeric-grid.is-collapsed {
+            display: none;
         }
 
         .section {
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            background: #fff;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 9px;
+            background: var(--surface-strong);
+            overflow: hidden;
         }
 
-        .section h3 {
-            margin: 0;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
+        .filter-accordion {
+            border: none;
+        }
+
+        .filter-accordion summary {
+            list-style: none;
+        }
+
+        .filter-accordion summary::-webkit-details-marker {
+            display: none;
         }
 
         .section-head {
+            padding: 10px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .section-head h3 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .section-body {
+            padding: 0 10px 10px;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
         }
 
         .mini-actions {
             display: flex;
-            gap: 5px;
+            gap: 6px;
         }
 
         .mini-actions button {
             border: 1px solid var(--border);
-            background: #f8fafc;
-            border-radius: 8px;
-            font-size: 0.74rem;
+            background: var(--accent-soft);
+            border-radius: 7px;
+            font-size: 0.72rem;
             cursor: pointer;
-            padding: 3px 7px;
+            color: var(--ink);
+            padding: 4px 7px;
+            font-family: inherit;
+            font-weight: 700;
         }
 
         .scroll-list {
-            max-height: 190px;
+            max-height: 180px;
             overflow-y: auto;
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 6px;
-            background: #fcfdff;
+            background: var(--surface);
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -228,108 +269,60 @@
         }
 
         .check-item:hover {
-            background: #eef6ff;
+            background: var(--accent-soft);
         }
 
         .list-search,
         .text-input,
         .select,
-        .number-input {
+        .number-input,
+        .btn {
             width: 100%;
             border: 1px solid var(--border);
             border-radius: 9px;
             padding: 8px 10px;
             font-family: inherit;
             font-size: 0.82rem;
-            background: #fff;
+            background: var(--surface-strong);
             color: var(--ink);
             outline: none;
+        }
+
+        .btn {
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            width: auto;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+        }
+
+        .btn--primary {
+            background: linear-gradient(140deg, #0a96f0, #1862c7);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .btn--ghost {
+            background: transparent;
         }
 
         .text-input:focus,
         .select:focus,
         .number-input:focus,
         .list-search:focus {
-            border-color: #5bbcff;
-            box-shadow: 0 0 0 3px rgba(0, 134, 217, 0.16);
-        }
-
-        .range-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .range-row small {
-            display: block;
-            color: var(--muted);
-            margin-bottom: 3px;
-            font-size: 0.73rem;
-        }
-
-        .main {
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .top {
-            background: var(--surface);
-            backdrop-filter: blur(14px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: var(--shadow-soft);
-        }
-
-        .tabs {
-            display: inline-flex;
-            background: #eaf1f8;
-            padding: 4px;
-            border-radius: 10px;
-            width: fit-content;
-            gap: 4px;
-        }
-
-        .tab {
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            padding: 7px 12px;
-            font-family: inherit;
-            font-weight: 700;
-            font-size: 0.82rem;
-            color: #425466;
-            cursor: pointer;
-        }
-
-        .tab.is-active {
-            background: #fff;
-            color: #102133;
-            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.15);
-        }
-
-        .search-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
-            gap: 8px;
-        }
-
-        .quick-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(17, 119, 216, 0.16);
         }
 
         .chips {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
-            min-height: 30px;
+            min-height: 28px;
             align-items: center;
         }
 
@@ -338,12 +331,18 @@
             align-items: center;
             gap: 6px;
             border-radius: 999px;
-            border: 1px solid #b9dfff;
-            background: #edf7ff;
-            color: #174a7a;
-            font-size: 0.74rem;
+            border: 1px solid #8ec8ff;
+            background: #e9f4ff;
+            color: #10375a;
+            font-size: 0.72rem;
             font-weight: 700;
             padding: 4px 9px;
+        }
+
+        html[data-theme='dark'] .chip {
+            border-color: #2f5b8b;
+            background: #17304c;
+            color: #d8eaff;
         }
 
         .chip button {
@@ -396,7 +395,7 @@
         .top-picks {
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            background: #fff;
+            background: var(--surface-strong);
             padding: 12px;
             margin-bottom: 12px;
         }
@@ -425,7 +424,7 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 8px;
-            background: #fbfdff;
+            background: var(--surface);
             display: flex;
             flex-direction: column;
             gap: 4px;
@@ -444,7 +443,7 @@
         .pick a {
             font-size: 0.73rem;
             font-weight: 700;
-            color: #0a67b8;
+            color: var(--accent);
             text-decoration: none;
         }
 
@@ -456,25 +455,37 @@
 
         .course-card {
             border-radius: 14px;
-            border: 1px solid #d8e0e8;
+            border: 1px solid var(--border);
             box-shadow: var(--shadow-card);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            background: #fff;
+            background: var(--surface-strong);
+            animation: card-in 0.35s ease;
+        }
+
+        @keyframes card-in {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .course-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.15);
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.2);
         }
 
         .course-media {
             position: relative;
             width: 100%;
             height: 180px;
-            background: #dce7f2;
+            background: #d8e5f2;
         }
 
         .course-media img {
@@ -492,8 +503,8 @@
             padding: 4px 8px;
             font-size: 0.7rem;
             font-weight: 700;
-            color: #e0f6ff;
-            background: rgba(5, 32, 51, 0.9);
+            color: #eff8ff;
+            background: rgba(6, 18, 34, 0.9);
             font-family: 'JetBrains Mono', monospace;
         }
 
@@ -502,8 +513,6 @@
             right: auto;
             bottom: auto;
             top: 8px;
-            color: #edf5ff;
-            background: rgba(30, 41, 59, 0.87);
         }
 
         .course-body {
@@ -511,13 +520,13 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            min-height: 290px;
+            min-height: 292px;
         }
 
         .score-bar {
             height: 6px;
             border-radius: 999px;
-            background: #dbe5f0;
+            background: #d6e2ef;
             overflow: hidden;
         }
 
@@ -536,8 +545,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border: 1px solid rgba(31, 51, 73, 0.08);
-            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--border);
+            background: var(--surface);
             border-radius: 10px;
             padding: 8px 10px;
         }
@@ -550,7 +559,7 @@
         }
 
         .rating-sub {
-            color: #617489;
+            color: var(--muted);
             font-size: 0.68rem;
             margin-top: 3px;
             font-weight: 700;
@@ -569,7 +578,7 @@
 
         .trust span {
             font-size: 0.62rem;
-            color: #74879a;
+            color: var(--muted);
         }
 
         .course-title {
@@ -585,7 +594,7 @@
         }
 
         .course-instructor {
-            color: #4f6172;
+            color: var(--muted);
             font-size: 0.72rem;
             font-weight: 700;
             white-space: nowrap;
@@ -653,7 +662,7 @@
         .course-link {
             text-align: center;
             text-decoration: none;
-            background: linear-gradient(140deg, #0da0ff, #1c7fef);
+            background: linear-gradient(140deg, #0d94e8, #1f73d0);
             color: white;
             border-radius: 8px;
             padding: 9px;
@@ -662,12 +671,12 @@
         }
 
         .empty {
-            border: 1px dashed #c3d1df;
+            border: 1px dashed var(--border);
             border-radius: 12px;
-            background: #fff;
+            background: var(--surface-strong);
             padding: 20px;
             text-align: center;
-            color: #627587;
+            color: var(--muted);
             font-size: 0.9rem;
         }
 
@@ -685,13 +694,13 @@
 
         .metric {
             border: 1px solid var(--border);
-            background: #fff;
+            background: var(--surface-strong);
             border-radius: 11px;
             padding: 10px;
         }
 
         .metric small {
-            color: #5f7284;
+            color: var(--muted);
             font-size: 0.72rem;
         }
 
@@ -711,7 +720,7 @@
         .panel {
             border: 1px solid var(--border);
             border-radius: 12px;
-            background: #fff;
+            background: var(--surface-strong);
             padding: 10px;
         }
 
@@ -738,7 +747,7 @@
         .bar {
             height: 8px;
             border-radius: 999px;
-            background: #e6edf5;
+            background: #dce7f2;
             overflow: hidden;
         }
 
@@ -754,222 +763,200 @@
             font-size: 0.8rem;
         }
 
-        @media (max-width: 1140px) {
-    .app {
-        grid-template-columns: 1fr;
-        height: auto;
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-
-            .app.is-sidebar-collapsed {
-                grid-template-columns: 1fr;
+        @media (max-width: 1280px) {
+            .filters-wrap {
+                grid-template-columns: repeat(3, minmax(220px, 1fr));
             }
 
-            .sidebar {
-                max-height: none;
-            }
-
-            body {
-                overflow: auto;
+            .numeric-grid {
+                grid-template-columns: repeat(2, minmax(220px, 1fr));
             }
         }
 
-        @media (max-width: 820px) {
+        @media (max-width: 960px) {
             .search-row {
                 grid-template-columns: 1fr;
             }
 
-            .quick-row {
+            .filters-wrap,
+            .numeric-grid,
+            .course-grid {
                 grid-template-columns: 1fr;
             }
 
-            .course-grid {
-                grid-template-columns: 1fr;
+            .brand {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <aside id="sidebarPanel" class="sidebar">
+        <section class="top">
             <div class="brand">
-                <h1>Udemy Decision Dashboard</h1>
-                <p>Premium filtering and analytics workspace for 3000+ courses.</p>
-            </div>
-
-            <div class="sidebar-actions">
-                <button id="clearAllBtn" class="btn btn--ghost" type="button">Clear All Filters</button>
-                <button id="toggleSidebarBtn" class="btn btn--primary" type="button" aria-controls="sidebarPanel" aria-expanded="true">Collapse Filters</button>
-            </div>
-
-            <div class="section">
-                <div class="section-head">
-                    <h3>Numeric Filters</h3>
+                <div>
+                    <h1>Udemy Decision Dashboard</h1>
+                    <p>Cleaner command center for filtering, ranking, and comparing your courses.</p>
                 </div>
+                <div class="dashboard-actions">
+                    <button id="themeToggleBtn" class="btn" type="button">Dark mode</button>
+                    <button id="toggleFiltersBtn" class="btn" type="button" aria-expanded="false">Show filters</button>
+                    <button id="clearAllBtn" class="btn btn--ghost" type="button">Clear all filters</button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab is-active" data-view="courses" type="button">Courses</button>
+                <button class="tab" data-view="stats" type="button">Statistics</button>
+            </div>
+
+            <div class="search-row">
+                <input id="searchInput" class="text-input" type="text" placeholder="Search titles, instructors, language, recommendation...">
+
+                <select id="sortSelect" class="select">
+                    <option value="score_desc">Sort: AI score high to low</option>
+                    <option value="score_asc">Sort: AI score low to high</option>
+                    <option value="rating_desc">Sort: Rating high to low</option>
+                    <option value="enrolled_desc">Sort: Most popular</option>
+                    <option value="duration_desc">Sort: Duration longest</option>
+                    <option value="duration_asc">Sort: Duration shortest</option>
+                    <option value="price_desc">Sort: Price high to low</option>
+                    <option value="price_asc">Sort: Price low to high</option>
+                    <option value="updated_desc">Sort: Recently updated</option>
+                    <option value="title_asc">Sort: Title A to Z</option>
+                </select>
+
+                <select id="rankingPreset" class="select">
+                    <option value="balanced">Top picks preset: Balanced</option>
+                    <option value="quick">Top picks preset: Quick wins</option>
+                    <option value="deep">Top picks preset: Deep learning</option>
+                    <option value="cert">Top picks preset: Certification focus</option>
+                </select>
+
+                <button id="clearSearchBtn" class="btn btn--primary" type="button">Reset search</button>
+            </div>
+
+            <div id="numericGrid" class="numeric-grid is-collapsed">
                 <div class="range-row">
                     <div>
-                        <small>AI Score Min</small>
+                        <small>AI score min</small>
                         <input id="scoreMin" class="number-input" type="number" min="0" max="100" step="1" value="0">
                     </div>
                     <div>
-                        <small>AI Score Max</small>
+                        <small>AI score max</small>
                         <input id="scoreMax" class="number-input" type="number" min="0" max="100" step="1" value="100">
                     </div>
                 </div>
                 <div class="range-row">
                     <div>
-                        <small>Rating Min</small>
+                        <small>Rating min</small>
                         <input id="ratingMin" class="number-input" type="number" min="0" max="5" step="0.1" value="0">
                     </div>
                     <div>
-                        <small>Rating Max</small>
+                        <small>Rating max</small>
                         <input id="ratingMax" class="number-input" type="number" min="0" max="5" step="0.1" value="5">
                     </div>
                 </div>
                 <div class="range-row">
                     <div>
-                        <small>Duration Min (h)</small>
+                        <small>Duration min (h)</small>
                         <input id="durationMin" class="number-input" type="number" min="0" step="0.1" value="0">
                     </div>
                     <div>
-                        <small>Duration Max (h)</small>
+                        <small>Duration max (h)</small>
                         <input id="durationMax" class="number-input" type="number" min="0" step="0.1" value="999">
                     </div>
                 </div>
                 <div class="range-row">
                     <div>
-                        <small>Price Min</small>
+                        <small>Price min</small>
                         <input id="priceMin" class="number-input" type="number" min="0" step="0.01" value="0">
                     </div>
                     <div>
-                        <small>Price Max</small>
+                        <small>Price max</small>
                         <input id="priceMax" class="number-input" type="number" min="0" step="0.01" value="99999999">
                     </div>
                 </div>
             </div>
 
-            <div id="groupCategory" class="section" data-group="category"></div>
-            <div id="groupSubcategory" class="section" data-group="subCategory"></div>
-            <div id="groupRecommendation" class="section" data-group="recommendation"></div>
-            <div id="groupType" class="section" data-group="courseType"></div>
-            <div id="groupLanguage" class="section" data-group="language"></div>
-            <div id="groupFreshness" class="section" data-group="freshness"></div>
-            <div id="groupCommitment" class="section" data-group="commitment"></div>
-            <div id="groupPacing" class="section" data-group="pacing"></div>
-        </aside>
-
-        <main class="main">
-            <div class="top">
-                <div class="tabs">
-                    <button class="tab is-active" data-view="courses" type="button">Courses</button>
-                    <button class="tab" data-view="stats" type="button">Statistics</button>
-                </div>
-
-                <div class="search-row">
-                    <input id="searchInput" class="text-input" type="text" placeholder="Search titles, instructors, categories, language, recommendation...">
-
-                    <select id="sortSelect" class="select">
-                        <option value="score_desc">Sort: AI Score (High to Low)</option>
-                        <option value="score_asc">Sort: AI Score (Low to High)</option>
-                        <option value="rating_desc">Sort: Rating (High to Low)</option>
-                        <option value="enrolled_desc">Sort: Most Popular</option>
-                        <option value="duration_desc">Sort: Duration (Longest)</option>
-                        <option value="duration_asc">Sort: Duration (Shortest)</option>
-                        <option value="price_desc">Sort: Price (High to Low)</option>
-                        <option value="price_asc">Sort: Price (Low to High)</option>
-                        <option value="updated_desc">Sort: Recently Updated</option>
-                        <option value="title_asc">Sort: Title A-Z</option>
-                    </select>
-
-                    <select id="quickCategory" class="select">
-                        <option value="">Quick Category: All</option>
-                    </select>
-
-                    <button id="clearSearchBtn" class="btn" type="button">Reset Search</button>
-                </div>
-
-                <div class="quick-row">
-                    <select id="quickSubCategory" class="select">
-                        <option value="">Quick Sub-Category: All</option>
-                    </select>
-                    <select id="rankingPreset" class="select">
-                        <option value="balanced">Top Picks Preset: Balanced</option>
-                        <option value="quick">Top Picks Preset: Quick Wins</option>
-                        <option value="deep">Top Picks Preset: Deep Learning</option>
-                        <option value="cert">Top Picks Preset: Certification Focus</option>
-                    </select>
-                </div>
-
-                <div id="activeChips" class="chips"></div>
+            <div id="filtersWrap" class="filters-wrap is-collapsed">
+                <div id="groupCategory" class="section" data-group="category"></div>
+                <div id="groupSubcategory" class="section" data-group="subCategory"></div>
+                <div id="groupRecommendation" class="section" data-group="recommendation"></div>
+                <div id="groupType" class="section" data-group="courseType"></div>
+                <div id="groupLanguage" class="section" data-group="language"></div>
+                <div id="groupFreshness" class="section" data-group="freshness"></div>
+                <div id="groupCommitment" class="section" data-group="commitment"></div>
+                <div id="groupPacing" class="section" data-group="pacing"></div>
             </div>
 
-            <div class="content">
-                <section id="coursesView" class="view is-active">
-                    <div class="header-strip">
-                        <div>
-                            <strong id="resultsTitle">Loading courses...</strong>
-                            <div><span id="resultsMeta"></span></div>
-                        </div>
-                    </div>
+            <div id="activeChips" class="chips"></div>
+        </section>
 
-                    <div class="top-picks">
-                        <div class="top-picks-head">
-                            <h3>Top Picks Assistant</h3>
-                            <span class="muted" id="pickPresetLabel">Preset: Balanced</span>
-                        </div>
-                        <div id="topPicks" class="top-pick-grid"></div>
+        <main class="content">
+            <section id="coursesView" class="view is-active">
+                <div class="header-strip">
+                    <div>
+                        <strong id="resultsTitle">Loading courses...</strong>
+                        <div><span id="resultsMeta"></span></div>
                     </div>
+                </div>
 
-                    <div id="courseGrid" class="course-grid"></div>
-                    <div class="load-more-wrap">
-                        <button id="loadMoreBtn" class="btn" type="button" hidden>Load More</button>
+                <div class="top-picks">
+                    <div class="top-picks-head">
+                        <h3>Top Picks Assistant</h3>
+                        <span class="muted" id="pickPresetLabel">Preset: Balanced</span>
                     </div>
-                </section>
+                    <div id="topPicks" class="top-pick-grid"></div>
+                </div>
 
-                <section id="statsView" class="view">
-                    <div class="header-strip">
-                        <div>
-                            <strong>Statistics</strong>
-                            <div><span id="statsMeta">Comparing all courses vs currently filtered courses</span></div>
-                        </div>
-                    </div>
+                <div id="courseGrid" class="course-grid"></div>
+                <div class="load-more-wrap">
+                    <button id="loadMoreBtn" class="btn" type="button" hidden>Load more</button>
+                </div>
+            </section>
 
-                    <div id="statsCards" class="stats-grid"></div>
-                    <div class="stat-panels">
-                        <div class="panel">
-                            <h4>AI Recommendation Distribution</h4>
-                            <div id="distRecommendation" class="bar-list"></div>
-                        </div>
-                        <div class="panel">
-                            <h4>Freshness Distribution</h4>
-                            <div id="distFreshness" class="bar-list"></div>
-                        </div>
-                        <div class="panel">
-                            <h4>Top Categories</h4>
-                            <div id="distCategory" class="bar-list"></div>
-                        </div>
-                        <div class="panel">
-                            <h4>Top Sub-Categories</h4>
-                            <div id="distSubCategory" class="bar-list"></div>
-                        </div>
+            <section id="statsView" class="view">
+                <div class="header-strip">
+                    <div>
+                        <strong>Statistics</strong>
+                        <div><span id="statsMeta">Comparing all courses vs currently filtered courses</span></div>
                     </div>
-                </section>
-            </div>
+                </div>
+
+                <div id="statsCards" class="stats-grid"></div>
+                <div class="stat-panels">
+                    <div class="panel">
+                        <h4>AI recommendation distribution</h4>
+                        <div id="distRecommendation" class="bar-list"></div>
+                    </div>
+                    <div class="panel">
+                        <h4>Freshness distribution</h4>
+                        <div id="distFreshness" class="bar-list"></div>
+                    </div>
+                    <div class="panel">
+                        <h4>Top categories</h4>
+                        <div id="distCategory" class="bar-list"></div>
+                    </div>
+                    <div class="panel">
+                        <h4>Top sub-categories</h4>
+                        <div id="distSubCategory" class="bar-list"></div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
     <script>
         const CSV_FILE_PATH = './myUdemyCourses.csv';
         const PAGE_SIZE = 140;
+        const THEME_STORAGE_KEY = 'udemy_dashboard_theme';
 
         const state = {
             allCourses: [],
             filteredCourses: [],
             visibleCount: PAGE_SIZE,
             currentView: 'courses',
-            quickCategory: '',
-            quickSubCategory: '',
             search: '',
             sort: 'score_desc',
             rankingPreset: 'balanced',
@@ -1014,18 +1001,20 @@
         };
 
         const els = {
+            root: document.documentElement,
             tabs: Array.from(document.querySelectorAll('.tab')),
             coursesView: document.getElementById('coursesView'),
             statsView: document.getElementById('statsView'),
             searchInput: document.getElementById('searchInput'),
             sortSelect: document.getElementById('sortSelect'),
-            quickCategory: document.getElementById('quickCategory'),
-            quickSubCategory: document.getElementById('quickSubCategory'),
             rankingPreset: document.getElementById('rankingPreset'),
             pickPresetLabel: document.getElementById('pickPresetLabel'),
             clearSearchBtn: document.getElementById('clearSearchBtn'),
             clearAllBtn: document.getElementById('clearAllBtn'),
-            toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
+            themeToggleBtn: document.getElementById('themeToggleBtn'),
+            toggleFiltersBtn: document.getElementById('toggleFiltersBtn'),
+            filtersWrap: document.getElementById('filtersWrap'),
+            numericGrid: document.getElementById('numericGrid'),
             activeChips: document.getElementById('activeChips'),
             courseGrid: document.getElementById('courseGrid'),
             topPicks: document.getElementById('topPicks'),
@@ -1070,6 +1059,34 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        function initTheme() {
+            const saved = localStorage.getItem(THEME_STORAGE_KEY);
+            if (saved === 'dark' || saved === 'light') {
+                setTheme(saved);
+                return;
+            }
+
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setTheme(prefersDark ? 'dark' : 'light');
+        }
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                els.root.setAttribute('data-theme', 'dark');
+                els.themeToggleBtn.textContent = 'Light mode';
+            } else {
+                els.root.removeAttribute('data-theme');
+                els.themeToggleBtn.textContent = 'Dark mode';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = els.root.getAttribute('data-theme') === 'dark';
+            const next = isDark ? 'light' : 'dark';
+            setTheme(next);
+            localStorage.setItem(THEME_STORAGE_KEY, next);
         }
 
         function parsePrice(raw) {
@@ -1182,11 +1199,11 @@
 
         function trustTier(rating, reviews) {
             const cred = calculateReviewCredibility(reviews);
-            if (rating >= 4.7 && cred >= 0.8) return { label: 'Elite Rank Class', color: '#06b6d4' };
-            if (rating >= 4.4 && cred >= 0.6) return { label: 'Highly Acclaimed', color: '#8b5cf6' };
-            if (rating >= 4.0 && cred >= 0.4) return { label: 'Good Standing', color: '#64748b' };
-            if (rating >= 4.0) return { label: 'Emerging Quality', color: '#f59e0b' };
-            return { label: 'Standard Track', color: '#64748b' };
+            if (rating >= 4.7 && cred >= 0.8) return { label: 'Elite rank class', color: '#06b6d4' };
+            if (rating >= 4.4 && cred >= 0.6) return { label: 'Highly acclaimed', color: '#8b5cf6' };
+            if (rating >= 4.0 && cred >= 0.4) return { label: 'Good standing', color: '#64748b' };
+            if (rating >= 4.0) return { label: 'Emerging quality', color: '#f59e0b' };
+            return { label: 'Standard track', color: '#64748b' };
         }
 
         function normalizeCourse(raw) {
@@ -1262,6 +1279,7 @@
         }
 
         function init() {
+            initTheme();
             bindEvents();
             parseCSV();
         }
@@ -1279,19 +1297,9 @@
                 refresh();
             });
 
-            els.quickCategory.addEventListener('change', (event) => {
-                state.quickCategory = event.target.value;
-                refresh();
-            });
-
-            els.quickSubCategory.addEventListener('change', (event) => {
-                state.quickSubCategory = event.target.value;
-                refresh();
-            });
-
             els.rankingPreset.addEventListener('change', (event) => {
                 state.rankingPreset = event.target.value;
-                els.pickPresetLabel.textContent = `Preset: ${event.target.selectedOptions[0].text.replace('Top Picks Preset: ', '')}`;
+                els.pickPresetLabel.textContent = `Preset: ${event.target.selectedOptions[0].text.replace('Top picks preset: ', '')}`;
                 renderTopPicks(state.filteredCourses);
             });
 
@@ -1302,24 +1310,14 @@
             });
 
             els.clearAllBtn.addEventListener('click', clearAllFilters);
+            els.themeToggleBtn.addEventListener('click', toggleTheme);
 
-           els.toggleSidebarBtn.addEventListener('click', () => {
-    const appShell = document.querySelector('.app');
-    const isCollapsed = appShell.classList.toggle('is-sidebar-collapsed');
-
-    els.toggleSidebarBtn.textContent = isCollapsed
-        ? '☰'
-        : 'Collapse Filters';
-
-    els.toggleSidebarBtn.title = isCollapsed
-        ? 'Show Filters'
-        : 'Collapse Filters';
-
-    els.toggleSidebarBtn.setAttribute(
-        'aria-expanded',
-        String(!isCollapsed)
-    );
-});
+            els.toggleFiltersBtn.addEventListener('click', () => {
+                const collapsed = els.filtersWrap.classList.toggle('is-collapsed');
+                els.numericGrid.classList.toggle('is-collapsed', collapsed);
+                els.toggleFiltersBtn.textContent = collapsed ? 'Show filters' : 'Hide filters';
+                els.toggleFiltersBtn.setAttribute('aria-expanded', String(!collapsed));
+            });
 
             const numericInputs = [
                 ['scoreMin', 'scoreMin'],
@@ -1370,7 +1368,6 @@
 
                     hydrateGroups();
                     buildFilterGroups();
-                    buildQuickFilters();
                     refresh();
                 },
                 error: (err) => {
@@ -1389,31 +1386,9 @@
             state.groups.pacing = getDistinct(state.allCourses, 'pacing');
         }
 
-        function buildQuickFilters() {
-            fillSelect(els.quickCategory, state.groups.category, 'Quick Category: All');
-            fillSelect(els.quickSubCategory, state.groups.subCategory, 'Quick Sub-Category: All');
-        }
-
-        function fillSelect(selectEl, values, defaultLabel) {
-            const fragment = document.createDocumentFragment();
-            selectEl.innerHTML = '';
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.textContent = defaultLabel;
-            fragment.appendChild(defaultOption);
-
-            values.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                fragment.appendChild(option);
-            });
-            selectEl.appendChild(fragment);
-        }
-
         function buildFilterGroups() {
             buildSingleFilterGroup(els.groupCategory, 'Categories', 'category');
-            buildSingleFilterGroup(els.groupSubcategory, 'Sub-Categories', 'subCategory');
+            buildSingleFilterGroup(els.groupSubcategory, 'Sub-categories', 'subCategory');
             buildSingleFilterGroup(els.groupRecommendation, 'AI Recommendation', 'recommendation');
             buildSingleFilterGroup(els.groupType, 'Course Type', 'courseType');
             buildSingleFilterGroup(els.groupLanguage, 'Language', 'language');
@@ -1428,17 +1403,23 @@
                 container.style.display = 'none';
                 return;
             }
-            container.style.display = 'flex';
+
+            container.style.display = 'block';
             container.innerHTML = `
-                <div class="section-head">
-                    <h3>${escapeHtml(title)}</h3>
-                    <div class="mini-actions">
-                        <button type="button" data-action="all">All</button>
-                        <button type="button" data-action="clear">Clear</button>
+                <details class="filter-accordion">
+                    <summary class="section-head">
+                        <h3>${escapeHtml(title)}</h3>
+                        <span class="muted" data-count>0 selected</span>
+                    </summary>
+                    <div class="section-body">
+                        <div class="mini-actions">
+                            <button type="button" data-action="all">All</button>
+                            <button type="button" data-action="clear">Clear</button>
+                        </div>
+                        <input class="list-search" type="text" placeholder="Search ${escapeHtml(title.toLowerCase())}..." data-search>
+                        <div class="scroll-list" data-list></div>
                     </div>
-                </div>
-                <input class="list-search" type="text" placeholder="Search ${escapeHtml(title.toLowerCase())}..." data-search>
-                <div class="scroll-list" data-list></div>
+                </details>
             `;
 
             container.querySelector('[data-search]').addEventListener('input', debounce((event) => {
@@ -1450,7 +1431,7 @@
                 btn.addEventListener('click', () => {
                     const action = btn.dataset.action;
                     if (action === 'all') {
-                        state.filters[groupKey] = new Set(options);
+                        state.filters[groupKey] = new Set(options.map(v => mapFilterOption(groupKey, v)));
                     } else {
                         state.filters[groupKey] = new Set();
                     }
@@ -1494,11 +1475,17 @@
             };
             const container = containerMap[groupKey];
             const list = container?.querySelector('[data-list]');
+            const count = container?.querySelector('[data-count]');
             if (!list) return;
 
             const options = state.groups[groupKey] || [];
             const search = state.groupSearch[groupKey] || '';
             const filtered = options.filter(option => option.toLowerCase().includes(search));
+
+            if (count) {
+                const selectedCount = state.filters[groupKey].size;
+                count.textContent = `${selectedCount} selected`;
+            }
 
             list.innerHTML = '';
             if (filtered.length === 0) {
@@ -1522,6 +1509,7 @@
                     } else {
                         state.filters[groupKey].delete(value);
                     }
+                    renderGroupOptions(groupKey);
                     refresh();
                 });
                 fragment.appendChild(item);
@@ -1542,14 +1530,10 @@
             ['category', 'subCategory', 'recommendation', 'courseType', 'language', 'freshness', 'commitment', 'pacing']
                 .forEach(group => state.filters[group] = new Set());
 
-            state.quickCategory = '';
-            state.quickSubCategory = '';
             state.search = '';
             state.visibleCount = PAGE_SIZE;
 
             els.searchInput.value = '';
-            els.quickCategory.value = '';
-            els.quickSubCategory.value = '';
 
             els.scoreMin.value = state.filters.scoreMin;
             els.scoreMax.value = state.filters.scoreMax;
@@ -1574,9 +1558,6 @@
                 if (course.rating < state.filters.ratingMin || course.rating > state.filters.ratingMax) return false;
                 if (course.durationHours < state.filters.durationMin || course.durationHours > state.filters.durationMax) return false;
                 if (course.price < state.filters.priceMin || course.price > state.filters.priceMax) return false;
-
-                if (state.quickCategory && course.category !== state.quickCategory) return false;
-                if (state.quickSubCategory && course.subCategory !== state.quickSubCategory) return false;
 
                 const groups = ['category', 'subCategory', 'recommendation', 'courseType', 'language', 'freshness', 'commitment', 'pacing'];
                 for (const group of groups) {
@@ -1619,8 +1600,6 @@
         function buildActiveChips() {
             const chips = [];
             if (state.search) chips.push({ type: 'search', label: `Search: ${state.search}` });
-            if (state.quickCategory) chips.push({ type: 'quickCategory', label: `Quick Category: ${state.quickCategory}` });
-            if (state.quickSubCategory) chips.push({ type: 'quickSubCategory', label: `Quick Sub-Category: ${state.quickSubCategory}` });
 
             const numRanges = [
                 ['Score', state.filters.scoreMin, state.filters.scoreMax, 0, 100],
@@ -1660,12 +1639,6 @@
             if (type === 'search') {
                 state.search = '';
                 els.searchInput.value = '';
-            } else if (type === 'quickCategory') {
-                state.quickCategory = '';
-                els.quickCategory.value = '';
-            } else if (type === 'quickSubCategory') {
-                state.quickSubCategory = '';
-                els.quickSubCategory.value = '';
             } else if (type.startsWith('range:')) {
                 const key = type.replace('range:', '');
                 if (key === 'Score') {
@@ -1701,15 +1674,15 @@
         }
 
         function getFreshnessBadge(freshness) {
-            if (freshness === 'Current Ecosystem') return '<span class="badge badge--cyan">🔄 Current Ecosystem</span>';
-            if (freshness === 'Recent Lifecycle') return '<span class="badge badge--amber">🔄 Recent Lifecycle</span>';
-            return '<span class="badge badge--red">🔄 Legacy System</span>';
+            if (freshness === 'Current Ecosystem') return '<span class="badge badge--cyan">Current ecosystem</span>';
+            if (freshness === 'Recent Lifecycle') return '<span class="badge badge--amber">Recent lifecycle</span>';
+            return '<span class="badge badge--red">Legacy system</span>';
         }
 
         function recommendationBadge(rec) {
-            if (rec.includes('Top Pick')) return `<span class="badge badge--violet">🚀 ${escapeHtml(rec)}</span>`;
-            if (rec.includes('Quick Win')) return `<span class="badge badge--cyan">⚡ ${escapeHtml(rec)}</span>`;
-            return `<span class="badge badge--slate">🎯 ${escapeHtml(rec)}</span>`;
+            if (rec.includes('Top Pick')) return `<span class="badge badge--violet">${escapeHtml(rec)}</span>`;
+            if (rec.includes('Quick Win')) return `<span class="badge badge--cyan">${escapeHtml(rec)}</span>`;
+            return `<span class="badge badge--slate">${escapeHtml(rec)}</span>`;
         }
 
         function renderCourses(courses) {
@@ -1750,8 +1723,8 @@
                 article.innerHTML = `
                     <div class="course-media">
                         <img src="${image}" alt="${title}" loading="lazy" onerror="this.src='https://via.placeholder.com/480x270?text=Image+Not+Found'">
-                        ${course.durationHours > 0 ? `<span class="overlay">⏱ ${runtime}</span>` : ''}
-                        <span class="overlay overlay-lang">🌍 ${language}</span>
+                        ${course.durationHours > 0 ? `<span class="overlay">${runtime}</span>` : ''}
+                        <span class="overlay overlay-lang">${language}</span>
                     </div>
                     <div class="course-body">
                         <div class="score-bar"><div class="score-fill" style="width:${Math.max(0, Math.min(100, course.score))}%; background:${scoreColor};"></div></div>
@@ -1759,34 +1732,34 @@
 
                         <div class="rating-panel">
                             <div>
-                                <div class="rating-main">⭐ ${rating} <small style="font-size:0.65rem;color:#718397;">/ 5.0</small></div>
+                                <div class="rating-main">${rating} <small style="font-size:0.65rem;color:#718397;">/ 5.0</small></div>
                                 <div class="rating-sub">${toLocaleInt(course.reviews)} reviews</div>
                             </div>
                             <div class="trust">
                                 <strong style="color:${trust.color};">${escapeHtml(trust.label)}</strong>
-                                <span>Community Validated</span>
+                                <span>Community validated</span>
                             </div>
                         </div>
 
                         <h3 class="course-title" title="${title}">${title}</h3>
-                        <div class="course-instructor">👨‍🏫 ${instructor}</div>
+                        <div class="course-instructor">${instructor}</div>
 
                         <div class="badge-wrap">
-                            <span class="badge badge--amber">💲 ${formatMoney(course.price)}</span>
-                            <span class="badge badge--slate">👥 ${enroll}</span>
-                            ${course.durationHours > 0 ? `<span class="badge badge--cyan">⏱ ${runtime}</span>` : ''}
-                            ${course.lectures > 0 ? `<span class="badge badge--slate">🎥 ${course.lectures}</span>` : ''}
-                            <span class="badge badge--violet">📅 ${created}</span>
-                            <span class="badge badge--cyan">🔄 ${updated}</span>
+                            <span class="badge badge--amber">${formatMoney(course.price)}</span>
+                            <span class="badge badge--slate">${enroll} learners</span>
+                            ${course.durationHours > 0 ? `<span class="badge badge--cyan">${runtime}</span>` : ''}
+                            ${course.lectures > 0 ? `<span class="badge badge--slate">${course.lectures} lectures</span>` : ''}
+                            <span class="badge badge--violet">Created ${created}</span>
+                            <span class="badge badge--cyan">Updated ${updated}</span>
                             ${getFreshnessBadge(course.freshness)}
-                            ${course.pacing && course.pacing !== 'N/A' ? `<span class="badge badge--cyan">📈 ${escapeHtml(course.pacing)}</span>` : ''}
-                            ${course.commitment && course.commitment !== 'N/A' ? `<span class="badge badge--violet">🕒 ${escapeHtml(course.commitment)}</span>` : ''}
+                            ${course.pacing && course.pacing !== 'N/A' ? `<span class="badge badge--cyan">${escapeHtml(course.pacing)}</span>` : ''}
+                            ${course.commitment && course.commitment !== 'N/A' ? `<span class="badge badge--violet">${escapeHtml(course.commitment)}</span>` : ''}
                             ${recommendationBadge(course.recommendation)}
-                            ${course.isPractice ? '<span class="badge badge--amber">📝 Practice Test Engine</span>' : ''}
+                            ${course.isPractice ? '<span class="badge badge--amber">Practice test</span>' : ''}
                         </div>
 
                         <div class="course-footer">
-                            <a class="course-link" href="${details}" target="_blank" rel="noopener">Go to Course</a>
+                            <a class="course-link" href="${details}" target="_blank" rel="noopener">Open course</a>
                         </div>
                     </div>
                 `;
@@ -1797,7 +1770,7 @@
             const hasMore = total > visible.length;
             els.loadMoreBtn.hidden = !hasMore;
             if (hasMore) {
-                els.loadMoreBtn.textContent = `Load More (${(total - visible.length).toLocaleString()} remaining)`;
+                els.loadMoreBtn.textContent = `Load more (${(total - visible.length).toLocaleString()} remaining)`;
             }
         }
 
@@ -1858,10 +1831,10 @@
                 const pick = document.createElement('div');
                 pick.className = 'pick';
                 pick.innerHTML = `
-                    <small>#${idx + 1} • Rank ${(row.rankScore * 100).toFixed(1)}</small>
+                    <small>#${idx + 1} | Rank ${(row.rankScore * 100).toFixed(1)}</small>
                     <strong>${escapeHtml(c.title)}</strong>
                     <small>${escapeHtml(topReason(c, state.rankingPreset))}</small>
-                    <a href="${escapeHtml(c.detailsUrl)}" target="_blank" rel="noopener">Open Course</a>
+                    <a href="${escapeHtml(c.detailsUrl)}" target="_blank" rel="noopener">Open course</a>
                 `;
                 fragment.appendChild(pick);
             });
@@ -1940,13 +1913,13 @@
             const current = aggregateStats(state.filteredCourses);
             const cards = [
                 ['Courses', `${current.count.toLocaleString()} / ${global.count.toLocaleString()}`],
-                ['Total Price', `${formatMoney(current.totalPrice)} / ${formatMoney(global.totalPrice)}`],
-                ['Average Price', `${formatMoney(current.avgPrice)} / ${formatMoney(global.avgPrice)}`],
-                ['Average AI Score', `${current.avgScore.toFixed(1)} / ${global.avgScore.toFixed(1)}`],
-                ['Average Rating', `${current.avgRating.toFixed(2)} / ${global.avgRating.toFixed(2)}`],
-                ['Total Enrolled', `${toLocaleInt(current.totalEnrolled)} / ${toLocaleInt(global.totalEnrolled)}`],
-                ['Free vs Paid', `${current.free} free, ${current.paid} paid`],
-                ['Average Duration (h)', `${current.avgDuration.toFixed(2)} / ${global.avgDuration.toFixed(2)}`]
+                ['Total price', `${formatMoney(current.totalPrice)} / ${formatMoney(global.totalPrice)}`],
+                ['Average price', `${formatMoney(current.avgPrice)} / ${formatMoney(global.avgPrice)}`],
+                ['Average AI score', `${current.avgScore.toFixed(1)} / ${global.avgScore.toFixed(1)}`],
+                ['Average rating', `${current.avgRating.toFixed(2)} / ${global.avgRating.toFixed(2)}`],
+                ['Total enrolled', `${toLocaleInt(current.totalEnrolled)} / ${toLocaleInt(global.totalEnrolled)}`],
+                ['Free vs paid', `${current.free} free, ${current.paid} paid`],
+                ['Average duration (h)', `${current.avgDuration.toFixed(2)} / ${global.avgDuration.toFixed(2)}`]
             ];
 
             els.statsCards.innerHTML = '';
