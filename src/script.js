@@ -67,6 +67,34 @@ const lang = getLang(document.documentElement.lang);
 
 createExportButton();
 
+const TAXONOMY_FIELD_PATHS = {
+  category: [
+    'primary_category.title',
+    'primary_category.name',
+    'primaryCategory.title',
+    'primaryCategory.name',
+    'category.title',
+    'category.name',
+    'category_title',
+    'categoryName',
+    'topic.title'
+  ],
+  subCategory: [
+    'primary_subcategory.title',
+    'primary_subcategory.name',
+    'primarySubcategory.title',
+    'primarySubcategory.name',
+    'subcategory.title',
+    'subcategory.name',
+    'sub_category.title',
+    'sub_category.name',
+    'subCategory.title',
+    'subCategory.name',
+    'subcategory_title',
+    'subcategoryName'
+  ]
+};
+
 const mutationObserver = new MutationObserver(fetchCourses);
 const observerConfig = { childList: true, subtree: true };
 
@@ -163,7 +191,9 @@ function fetchCourses() {
         'visible_instructors',
         'num_published_lectures',
         'price',
-        'image_480x270' // Added image link field request here
+        'image_480x270',
+        'primary_category',      // FIXED: Instructing API to explicitly return category object
+        'primary_subcategory'   // FIXED: Instructing API to explicitly return subcategory object
       ].join(',');
 
     fetch(fetchUrl)
@@ -171,12 +201,12 @@ function fetchCourses() {
         if (response.ok) return response.json();
         throw new Error(response.status);
       })
-      .then(json => {
+      .then(async json => {
         if (!json) return;
 
         // Extract metrics
         const courseTitle = json.title || 'Unknown Title';
-        const courseImage = json.image_480x270 || ''; // Extracted link
+        const courseImage = json.image_480x270 || ''; 
         const ratingValue = Number(json.rating || 0);
         const rating = ratingValue.toFixed(1);
         const reviews = json.num_reviews || 0;
@@ -190,10 +220,10 @@ function fetchCourses() {
         const createdDate = parseDate(json.created);
         const updatedDate = parseDate(json.last_update_date || json.created);
         const isExam = runtime === 0;
+        const taxonomy = await resolveTaxonomy(json, courseId);
         
         // Price metrics
         const rawPrice = json.price || 'Free';
-        // Strip symbols for CSV (leaves only digits, decimals, and commas)
         const numericPriceCsv = rawPrice.toLowerCase() === 'free' ? '0' : rawPrice.replace(/[^\d.,]/g, '');
 
         const ageInDays = updatedDate ? Math.floor((Date.now() - updatedDate.getTime()) / 86400000) : 9999;
@@ -335,7 +365,9 @@ function fetchCourses() {
           createdDate: createdDate ? formatDateCustom(createdDate) : 'Unknown',
           updatedDate: updatedDate ? formatDateCustom(updatedDate) : 'Unknown',
           freshness: freshnessLabel,
-          imageUrl: courseImage, // Saved mapped image string
+          category: taxonomy.category,
+          subCategory: taxonomy.subCategory,
+          imageUrl: courseImage, 
           link: `https://www.udemy.com/course/${courseId}/`
         });
 
@@ -343,7 +375,7 @@ function fetchCourses() {
         // INTEGRATED RENDERING INTERFACE LAYER
         // =====================================================
         courseCustomDiv.innerHTML = `
-          <div class="impr__recommendation-bar" style="height:6px; width:${score}%; background:${scoreColor}; border-radius:999px; margin-bottom:8px; transition:0.3s;"></div>
+          <div class="impr__recommendation-bar" style="height:6px; width:${score}%; background:${scoreColor}; border-radius999px; margin-bottom:8px; transition:0.3s;"></div>
           <div style="font-size:14px; font-weight:800; color:${scoreColor}; margin-bottom:8px; letter-spacing:0.3px; font-family:'Fira Code',monospace;">
             Score ${score}/100
           </div>
@@ -443,12 +475,11 @@ function generateCSV() {
     return;
   }
 
-  // Updated headers containing 'Course Image URL'
   const headers = [
     'Course ID', 'Course Name', 'Instructor', 'Price',
     'AI Efficiency Score', 'AI Recommendation', 'Rating', 'Reviews Count', 'Enrolled Students', 
     'Is Practice Test', 'Duration (Hours)', 'Lectures Count', 'Pacing Model', 'Commitment Level', 'Language', 
-    'Created Date', 'Updated Date', 'Freshness Status', 
+    'Created Date', 'Updated Date', 'Freshness Status', 'Category', 'Sub-Category',
     'Course Image URL', 'Details URL'
   ];
   
@@ -474,7 +505,9 @@ function generateCSV() {
       `"${c.createdDate || 'Unknown'}"`,
       `"${c.updatedDate || 'Unknown'}"`,
       `"${c.freshness || 'Unknown'}"`,
-      `"${(c.imageUrl || '').replace(/"/g, '""')}"`, // Appended values safely escaped
+      `"${(c.category || '').replace(/"/g, '""')}"`,
+      `"${(c.subCategory || '').replace(/"/g, '""')}"`,
+      `"${(c.imageUrl || '').replace(/"/g, '""')}"`, 
       `"${(c.link || '').replace(/"/g, '""')}"`
     ];
     csvContent += row.join(',') + '\r\n';
@@ -509,6 +542,110 @@ function parseDate(dateString) {
   if (!dateString) return null;
   const parsedDate = new Date(dateString);
   return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+}
+
+async function resolveTaxonomy(json, courseId) {
+  const category = findFirstNonEmpty(json, TAXONOMY_FIELD_PATHS.category);
+  const subCategory = findFirstNonEmpty(json, TAXONOMY_FIELD_PATHS.subCategory);
+
+  if (category && subCategory) {
+    return { category, subCategory };
+  }
+
+  const pageTaxonomy = await fetchTaxonomyFromCoursePage(json.url || `https://www.udemy.com/course/${courseId}/`);
+  return {
+    category: category || pageTaxonomy.category,
+    subCategory: subCategory || pageTaxonomy.subCategory
+  };
+}
+
+function findFirstNonEmpty(source, paths) {
+  for (const path of paths) {
+    const value = getPathValue(source, path);
+    const normalized = normalizeTaxonomyValue(value);
+    if (normalized) return normalized;
+  }
+  return '';
+}
+
+function getPathValue(source, path) {
+  return path.split('.').reduce((current, key) => {
+    if (!current || typeof current !== 'object') return undefined;
+    return current[key];
+  }, source);
+}
+
+function normalizeTaxonomyValue(value) {
+  if (!value) return '';
+  if (Array.isArray(value)) {
+    return normalizeTaxonomyValue(value[0]);
+  }
+  if (typeof value === 'object') {
+    return normalizeTaxonomyValue(
+      value.title || value.name || value.label || value.display_name || value.value
+    );
+  }
+  return String(value).trim();
+}
+
+async function fetchTaxonomyFromCoursePage(courseUrl) {
+  try {
+    const response = await fetch(courseUrl, { credentials: 'include' });
+    if (!response.ok) return { category: '', subCategory: '' };
+
+    const html = await response.text();
+    const parser = new DOMParser();
+    const documentNode = parser.parseFromString(html, 'text/html');
+    const breadcrumbNames = [];
+
+    documentNode.querySelectorAll('script[type="application/ld+json"]').forEach((script) => {
+      try {
+        const data = JSON.parse(script.textContent || 'null');
+        collectBreadcrumbNames(data, breadcrumbNames);
+      } catch {
+        // Ignore malformed structured data blocks.
+      }
+    });
+
+    const cleanedNames = breadcrumbNames
+      .map(name => String(name || '').trim())
+      .filter(Boolean)
+      .filter((name, index, array) => array.indexOf(name) === index)
+      .filter(name => !/^home$/i.test(name) && !/^udemy$/i.test(name));
+
+    if (cleanedNames.length >= 2) {
+      return {
+        category: cleanedNames[cleanedNames.length - 2],
+        subCategory: cleanedNames[cleanedNames.length - 1]
+      };
+    }
+
+    return { category: '', subCategory: '' };
+  } catch {
+    return { category: '', subCategory: '' };
+  }
+}
+
+function collectBreadcrumbNames(data, bucket) {
+  if (!data) return;
+
+  if (Array.isArray(data)) {
+    data.forEach(item => collectBreadcrumbNames(item, bucket));
+    return;
+  }
+
+  if (typeof data !== 'object') return;
+
+  if (data['@type'] === 'BreadcrumbList' && Array.isArray(data.itemListElement)) {
+    data.itemListElement.forEach((entry) => {
+      const candidate = normalizeTaxonomyValue(
+        entry?.name || entry?.item?.name || entry?.item?.title || entry?.item?.text
+      );
+      if (candidate) bucket.push(candidate);
+    });
+  }
+
+  Object.values(data).forEach(value => collectBreadcrumbNames(value, bucket));
 }
 
 function getFreshnessStatus(updatedDate) {

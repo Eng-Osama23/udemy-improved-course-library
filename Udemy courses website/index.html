@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Udemy Decision Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --bg-grad-a: #ecf8ff;
+            --bg-grad-b: #fff7e9;
+            --surface: rgba(255, 255, 255, 0.84);
+            --surface-strong: #ffffff;
+            --ink: #17212b;
+            --muted: #5c6b78;
+            --border: #d8e0e8;
+            --accent: #0086d9;
+            --accent-soft: #e6f5ff;
+            --danger: #cc3a2c;
+
+            --tier-cyan: #06b6d4;
+            --tier-violet: #8b5cf6;
+            --tier-amber: #f59e0b;
+            --tier-red: #ef4444;
+
+            --radius-xl: 18px;
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --shadow-soft: 0 10px 30px rgba(17, 24, 39, 0.08);
+            --shadow-card: 0 8px 20px rgba(17, 24, 39, 0.09);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(1200px 700px at -10% -5%, var(--bg-grad-a), transparent 55%),
+                radial-gradient(1000px 600px at 110% 10%, var(--bg-grad-b), transparent 50%),
+                var(--bg);
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+       .app {
+    display: grid;
+    transition: grid-template-columns 0.25s ease;
+            grid-template-columns: 330px minmax(0, 1fr);
+            min-height: 100vh;
+            height: auto;
+            gap: 14px;
+            padding: 14px;
+        }
+
+ .app.is-sidebar-collapsed {
+    grid-template-columns: 90px minmax(0, 1fr);
+}
+
+    .app.is-sidebar-collapsed .sidebar {
+    overflow: hidden;
+    padding: 12px 10px;
+    width: 90px;
+    min-width: 90px;
+}
+
+.app.is-sidebar-collapsed #toggleSidebarBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 0;
+}
+
+    .app.is-sidebar-collapsed .sidebar .section,
+    .app.is-sidebar-collapsed .sidebar .brand p,
+    .app.is-sidebar-collapsed .sidebar .section-head,
+    .app.is-sidebar-collapsed .sidebar .list-search,
+    .app.is-sidebar-collapsed .sidebar .scroll-list,
+    .app.is-sidebar-collapsed .sidebar .range-row,
+    .app.is-sidebar-collapsed .sidebar #clearAllBtn {
+        display: none;
+    }
+
+    .app.is-sidebar-collapsed .sidebar-actions {
+        grid-template-columns: 1fr;
+    }
+
+        .sidebar {
+    background: var(--surface);
+    transition: all 0.25s ease;
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .brand {
+               overflow: hidden;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 14px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+        
+            line-height: 1.1;
+
+              font-size: 18px;
+    
+    word-break: break-word;
+        }
+
+        .brand p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .sidebar-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 8px 10px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            background: #fff;
+            color: var(--ink);
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.1);
+        }
+
+        .btn--primary {
+            background: linear-gradient(140deg, #0aa5ff, #1273de);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .btn--ghost {
+            background: transparent;
+        }
+
+        .section {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            background: #fff;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .section h3 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .mini-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .mini-actions button {
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 0.74rem;
+            cursor: pointer;
+            padding: 3px 7px;
+        }
+
+        .scroll-list {
+            max-height: 190px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px;
+            background: #fcfdff;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.79rem;
+            color: var(--ink);
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 6px;
+        }
+
+        .check-item:hover {
+            background: #eef6ff;
+        }
+
+        .list-search,
+        .text-input,
+        .select,
+        .number-input {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 8px 10px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            background: #fff;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .text-input:focus,
+        .select:focus,
+        .number-input:focus,
+        .list-search:focus {
+            border-color: #5bbcff;
+            box-shadow: 0 0 0 3px rgba(0, 134, 217, 0.16);
+        }
+
+        .range-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .range-row small {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 3px;
+            font-size: 0.73rem;
+        }
+
+        .main {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .top {
+            background: var(--surface);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .tabs {
+            display: inline-flex;
+            background: #eaf1f8;
+            padding: 4px;
+            border-radius: 10px;
+            width: fit-content;
+            gap: 4px;
+        }
+
+        .tab {
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            padding: 7px 12px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: #425466;
+            cursor: pointer;
+        }
+
+        .tab.is-active {
+            background: #fff;
+            color: #102133;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.15);
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 8px;
+        }
+
+        .quick-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 30px;
+            align-items: center;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            border: 1px solid #b9dfff;
+            background: #edf7ff;
+            color: #174a7a;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 4px 9px;
+        }
+
+        .chip button {
+            border: none;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            font-size: 0.9rem;
+        }
+
+        .content {
+            min-height: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 14px;
+            box-shadow: var(--shadow-soft);
+            overflow: auto;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.is-active {
+            display: block;
+        }
+
+        .header-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-strip strong {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+        }
+
+        .header-strip span {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .top-picks {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            background: #fff;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .top-picks-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .top-picks-head h3 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .top-pick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 8px;
+        }
+
+        .pick {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px;
+            background: #fbfdff;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pick strong {
+            font-size: 0.82rem;
+            line-height: 1.25;
+        }
+
+        .pick small {
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+
+        .pick a {
+            font-size: 0.73rem;
+            font-weight: 700;
+            color: #0a67b8;
+            text-decoration: none;
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 14px;
+        }
+
+        .course-card {
+            border-radius: 14px;
+            border: 1px solid #d8e0e8;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: #fff;
+        }
+
+        .course-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 24px rgba(15, 23, 42, 0.15);
+        }
+
+        .course-media {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            background: #dce7f2;
+        }
+
+        .course-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .overlay {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            border-radius: 7px;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #e0f6ff;
+            background: rgba(5, 32, 51, 0.9);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .overlay-lang {
+            left: 8px;
+            right: auto;
+            bottom: auto;
+            top: 8px;
+            color: #edf5ff;
+            background: rgba(30, 41, 59, 0.87);
+        }
+
+        .course-body {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 290px;
+        }
+
+        .score-bar {
+            height: 6px;
+            border-radius: 999px;
+            background: #dbe5f0;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        .score-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
+        .rating-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(31, 51, 73, 0.08);
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+
+        .rating-main {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #ea580c;
+            line-height: 1;
+        }
+
+        .rating-sub {
+            color: #617489;
+            font-size: 0.68rem;
+            margin-top: 3px;
+            font-weight: 700;
+        }
+
+        .trust {
+            text-align: right;
+        }
+
+        .trust strong {
+            display: block;
+            font-size: 0.66rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .trust span {
+            font-size: 0.62rem;
+            color: #74879a;
+        }
+
+        .course-title {
+            margin: 2px 0 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            line-height: 1.25;
+            line-clamp: 2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .course-instructor {
+            color: #4f6172;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: auto;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border: 1px solid;
+            border-radius: 7px;
+            font-size: 0.66rem;
+            font-weight: 700;
+            white-space: nowrap;
+            line-height: 1.1;
+        }
+
+        .badge--slate {
+            background: #f8fafc;
+            color: #1e293b;
+            border-color: #e2e8f0;
+        }
+
+        .badge--amber {
+            background: #fff7e4;
+            color: #b45309;
+            border-color: #fbd38d;
+        }
+
+        .badge--violet {
+            background: #f3edff;
+            color: #6d28d9;
+            border-color: #d8b4fe;
+        }
+
+        .badge--cyan {
+            background: #e8fbff;
+            color: #0e7490;
+            border-color: #99f6e4;
+        }
+
+        .badge--red {
+            background: #fff1f2;
+            color: #be123c;
+            border-color: #fecdd3;
+        }
+
+        .course-footer {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .course-link {
+            text-align: center;
+            text-decoration: none;
+            background: linear-gradient(140deg, #0da0ff, #1c7fef);
+            color: white;
+            border-radius: 8px;
+            padding: 9px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .empty {
+            border: 1px dashed #c3d1df;
+            border-radius: 12px;
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+            color: #627587;
+            font-size: 0.9rem;
+        }
+
+        .load-more-wrap {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .metric {
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 11px;
+            padding: 10px;
+        }
+
+        .metric small {
+            color: #5f7284;
+            font-size: 0.72rem;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 4px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.07rem;
+        }
+
+        .stat-panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            padding: 10px;
+        }
+
+        .panel h4 {
+            margin: 0 0 8px;
+            font-size: 0.9rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .bar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .bar-item {
+            display: grid;
+            grid-template-columns: minmax(90px, 1fr) 1fr auto;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.74rem;
+        }
+
+        .bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e6edf5;
+            overflow: hidden;
+        }
+
+        .bar > span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(140deg, #0ea5e9, #8b5cf6);
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 1140px) {
+    .app {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+            .app.is-sidebar-collapsed {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-height: none;
+            }
+
+            body {
+                overflow: auto;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .search-row {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-row {
+                grid-template-columns: 1fr;
+            }
+
+            .course-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside id="sidebarPanel" class="sidebar">
+            <div class="brand">
+                <h1>Udemy Decision Dashboard</h1>
+                <p>Premium filtering and analytics workspace for 3000+ courses.</p>
+            </div>
+
+            <div class="sidebar-actions">
+                <button id="clearAllBtn" class="btn btn--ghost" type="button">Clear All Filters</button>
+                <button id="toggleSidebarBtn" class="btn btn--primary" type="button" aria-controls="sidebarPanel" aria-expanded="true">Collapse Filters</button>
+            </div>
+
+            <div class="section">
+                <div class="section-head">
+                    <h3>Numeric Filters</h3>
+                </div>
+                <div class="range-row">
+                    <div>
+                        <small>AI Score Min</small>
+                        <input id="scoreMin" class="number-input" type="number" min="0" max="100" step="1" value="0">
+                    </div>
+                    <div>
+                        <small>AI Score Max</small>
+                        <input id="scoreMax" class="number-input" type="number" min="0" max="100" step="1" value="100">
+                    </div>
+                </div>
+                <div class="range-row">
+                    <div>
+                        <small>Rating Min</small>
+                        <input id="ratingMin" class="number-input" type="number" min="0" max="5" step="0.1" value="0">
+                    </div>
+                    <div>
+                        <small>Rating Max</small>
+                        <input id="ratingMax" class="number-input" type="number" min="0" max="5" step="0.1" value="5">
+                    </div>
+                </div>
+                <div class="range-row">
+                    <div>
+                        <small>Duration Min (h)</small>
+                        <input id="durationMin" class="number-input" type="number" min="0" step="0.1" value="0">
+                    </div>
+                    <div>
+                        <small>Duration Max (h)</small>
+                        <input id="durationMax" class="number-input" type="number" min="0" step="0.1" value="999">
+                    </div>
+                </div>
+                <div class="range-row">
+                    <div>
+                        <small>Price Min</small>
+                        <input id="priceMin" class="number-input" type="number" min="0" step="0.01" value="0">
+                    </div>
+                    <div>
+                        <small>Price Max</small>
+                        <input id="priceMax" class="number-input" type="number" min="0" step="0.01" value="99999999">
+                    </div>
+                </div>
+            </div>
+
+            <div id="groupCategory" class="section" data-group="category"></div>
+            <div id="groupSubcategory" class="section" data-group="subCategory"></div>
+            <div id="groupRecommendation" class="section" data-group="recommendation"></div>
+            <div id="groupType" class="section" data-group="courseType"></div>
+            <div id="groupLanguage" class="section" data-group="language"></div>
+            <div id="groupFreshness" class="section" data-group="freshness"></div>
+            <div id="groupCommitment" class="section" data-group="commitment"></div>
+            <div id="groupPacing" class="section" data-group="pacing"></div>
+        </aside>
+
+        <main class="main">
+            <div class="top">
+                <div class="tabs">
+                    <button class="tab is-active" data-view="courses" type="button">Courses</button>
+                    <button class="tab" data-view="stats" type="button">Statistics</button>
+                </div>
+
+                <div class="search-row">
+                    <input id="searchInput" class="text-input" type="text" placeholder="Search titles, instructors, categories, language, recommendation...">
+
+                    <select id="sortSelect" class="select">
+                        <option value="score_desc">Sort: AI Score (High to Low)</option>
+                        <option value="score_asc">Sort: AI Score (Low to High)</option>
+                        <option value="rating_desc">Sort: Rating (High to Low)</option>
+                        <option value="enrolled_desc">Sort: Most Popular</option>
+                        <option value="duration_desc">Sort: Duration (Longest)</option>
+                        <option value="duration_asc">Sort: Duration (Shortest)</option>
+                        <option value="price_desc">Sort: Price (High to Low)</option>
+                        <option value="price_asc">Sort: Price (Low to High)</option>
+                        <option value="updated_desc">Sort: Recently Updated</option>
+                        <option value="title_asc">Sort: Title A-Z</option>
+                    </select>
+
+                    <select id="quickCategory" class="select">
+                        <option value="">Quick Category: All</option>
+                    </select>
+
+                    <button id="clearSearchBtn" class="btn" type="button">Reset Search</button>
+                </div>
+
+                <div class="quick-row">
+                    <select id="quickSubCategory" class="select">
+                        <option value="">Quick Sub-Category: All</option>
+                    </select>
+                    <select id="rankingPreset" class="select">
+                        <option value="balanced">Top Picks Preset: Balanced</option>
+                        <option value="quick">Top Picks Preset: Quick Wins</option>
+                        <option value="deep">Top Picks Preset: Deep Learning</option>
+                        <option value="cert">Top Picks Preset: Certification Focus</option>
+                    </select>
+                </div>
+
+                <div id="activeChips" class="chips"></div>
+            </div>
+
+            <div class="content">
+                <section id="coursesView" class="view is-active">
+                    <div class="header-strip">
+                        <div>
+                            <strong id="resultsTitle">Loading courses...</strong>
+                            <div><span id="resultsMeta"></span></div>
+                        </div>
+                    </div>
+
+                    <div class="top-picks">
+                        <div class="top-picks-head">
+                            <h3>Top Picks Assistant</h3>
+                            <span class="muted" id="pickPresetLabel">Preset: Balanced</span>
+                        </div>
+                        <div id="topPicks" class="top-pick-grid"></div>
+                    </div>
+
+                    <div id="courseGrid" class="course-grid"></div>
+                    <div class="load-more-wrap">
+                        <button id="loadMoreBtn" class="btn" type="button" hidden>Load More</button>
+                    </div>
+                </section>
+
+                <section id="statsView" class="view">
+                    <div class="header-strip">
+                        <div>
+                            <strong>Statistics</strong>
+                            <div><span id="statsMeta">Comparing all courses vs currently filtered courses</span></div>
+                        </div>
+                    </div>
+
+                    <div id="statsCards" class="stats-grid"></div>
+                    <div class="stat-panels">
+                        <div class="panel">
+                            <h4>AI Recommendation Distribution</h4>
+                            <div id="distRecommendation" class="bar-list"></div>
+                        </div>
+                        <div class="panel">
+                            <h4>Freshness Distribution</h4>
+                            <div id="distFreshness" class="bar-list"></div>
+                        </div>
+                        <div class="panel">
+                            <h4>Top Categories</h4>
+                            <div id="distCategory" class="bar-list"></div>
+                        </div>
+                        <div class="panel">
+                            <h4>Top Sub-Categories</h4>
+                            <div id="distSubCategory" class="bar-list"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const CSV_FILE_PATH = './myUdemyCourses.csv';
+        const PAGE_SIZE = 140;
+
+        const state = {
+            allCourses: [],
+            filteredCourses: [],
+            visibleCount: PAGE_SIZE,
+            currentView: 'courses',
+            quickCategory: '',
+            quickSubCategory: '',
+            search: '',
+            sort: 'score_desc',
+            rankingPreset: 'balanced',
+            filters: {
+                scoreMin: 0,
+                scoreMax: 100,
+                ratingMin: 0,
+                ratingMax: 5,
+                durationMin: 0,
+                durationMax: 999,
+                priceMin: 0,
+                priceMax: 99999999,
+                category: new Set(),
+                subCategory: new Set(),
+                recommendation: new Set(),
+                courseType: new Set(),
+                language: new Set(),
+                freshness: new Set(),
+                commitment: new Set(),
+                pacing: new Set()
+            },
+            groups: {
+                category: [],
+                subCategory: [],
+                recommendation: [],
+                courseType: ['Standard Course', 'Practice Test'],
+                language: [],
+                freshness: ['Current Ecosystem', 'Recent Lifecycle', 'Legacy System'],
+                commitment: [],
+                pacing: []
+            },
+            groupSearch: {
+                category: '',
+                subCategory: '',
+                recommendation: '',
+                courseType: '',
+                language: '',
+                freshness: '',
+                commitment: '',
+                pacing: ''
+            }
+        };
+
+        const els = {
+            tabs: Array.from(document.querySelectorAll('.tab')),
+            coursesView: document.getElementById('coursesView'),
+            statsView: document.getElementById('statsView'),
+            searchInput: document.getElementById('searchInput'),
+            sortSelect: document.getElementById('sortSelect'),
+            quickCategory: document.getElementById('quickCategory'),
+            quickSubCategory: document.getElementById('quickSubCategory'),
+            rankingPreset: document.getElementById('rankingPreset'),
+            pickPresetLabel: document.getElementById('pickPresetLabel'),
+            clearSearchBtn: document.getElementById('clearSearchBtn'),
+            clearAllBtn: document.getElementById('clearAllBtn'),
+            toggleSidebarBtn: document.getElementById('toggleSidebarBtn'),
+            activeChips: document.getElementById('activeChips'),
+            courseGrid: document.getElementById('courseGrid'),
+            topPicks: document.getElementById('topPicks'),
+            resultsTitle: document.getElementById('resultsTitle'),
+            resultsMeta: document.getElementById('resultsMeta'),
+            loadMoreBtn: document.getElementById('loadMoreBtn'),
+            statsCards: document.getElementById('statsCards'),
+            distRecommendation: document.getElementById('distRecommendation'),
+            distFreshness: document.getElementById('distFreshness'),
+            distCategory: document.getElementById('distCategory'),
+            distSubCategory: document.getElementById('distSubCategory'),
+            scoreMin: document.getElementById('scoreMin'),
+            scoreMax: document.getElementById('scoreMax'),
+            ratingMin: document.getElementById('ratingMin'),
+            ratingMax: document.getElementById('ratingMax'),
+            durationMin: document.getElementById('durationMin'),
+            durationMax: document.getElementById('durationMax'),
+            priceMin: document.getElementById('priceMin'),
+            priceMax: document.getElementById('priceMax'),
+            groupCategory: document.getElementById('groupCategory'),
+            groupSubcategory: document.getElementById('groupSubcategory'),
+            groupRecommendation: document.getElementById('groupRecommendation'),
+            groupType: document.getElementById('groupType'),
+            groupLanguage: document.getElementById('groupLanguage'),
+            groupFreshness: document.getElementById('groupFreshness'),
+            groupCommitment: document.getElementById('groupCommitment'),
+            groupPacing: document.getElementById('groupPacing')
+        };
+
+        function debounce(fn, delay = 220) {
+            let timer = null;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function parsePrice(raw) {
+            if (raw === null || raw === undefined) return 0;
+            const text = String(raw).trim().toLowerCase();
+            if (!text || text === 'free') return 0;
+
+            let sanitized = text.replace(/[^\d.,-]/g, '');
+            if (!sanitized) return 0;
+
+            if (sanitized.includes('.') && sanitized.includes(',')) {
+                sanitized = sanitized.replace(/,/g, '');
+            } else if (!sanitized.includes('.') && sanitized.includes(',')) {
+                const parts = sanitized.split(',');
+                const last = parts[parts.length - 1];
+                if (last.length <= 2) {
+                    sanitized = parts.slice(0, -1).join('') + '.' + last;
+                } else {
+                    sanitized = parts.join('');
+                }
+            }
+
+            const amount = parseFloat(sanitized);
+            return Number.isFinite(amount) ? amount : 0;
+        }
+
+        function parseDateDMY(value) {
+            if (!value) return null;
+            const parts = String(value).split('/').map(v => parseInt(v, 10));
+            if (parts.length !== 3) return null;
+            const [day, month, year] = parts;
+            if (!day || !month || !year) return null;
+            const date = new Date(year, month - 1, day);
+            if (Number.isNaN(date.getTime())) return null;
+            return date;
+        }
+
+        function daysSince(date) {
+            if (!date) return 9999;
+            const diff = Date.now() - date.getTime();
+            return Math.max(0, Math.floor(diff / 86400000));
+        }
+
+        function calculateReviewCredibility(reviewCount) {
+            if (reviewCount < 5) return 0.2;
+            if (reviewCount >= 500) return 1;
+            return 1 / (1 + Math.exp(-0.015 * (reviewCount - 250)));
+        }
+
+        function getScoreColor(score) {
+            if (score >= 85) return '#06b6d4';
+            if (score >= 70) return '#8b5cf6';
+            if (score >= 50) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        function getCardStyling(score, isExam) {
+            if (isExam) {
+                return {
+                    background: 'linear-gradient(135deg, #fff7ed, #fffaf5)',
+                    border: '2px solid #f59e0b',
+                    shadow: '0 8px 20px rgba(245,158,11,0.3)'
+                };
+            }
+            if (score >= 85) {
+                return {
+                    background: 'linear-gradient(135deg, #ecfdf5, #f0fdfa)',
+                    border: '1px solid #a7f3d0',
+                    shadow: '0 6px 16px rgba(6,182,212,0.12)'
+                };
+            }
+            if (score >= 70) {
+                return {
+                    background: 'linear-gradient(135deg, #f3f0ff, #f5f3ff)',
+                    border: '1px solid #d8b4fe',
+                    shadow: '0 6px 16px rgba(139,92,246,0.08)'
+                };
+            }
+            if (score >= 50) {
+                return {
+                    background: 'linear-gradient(135deg, #fff7ed, #fffbeb)',
+                    border: '1px solid #fcd34d',
+                    shadow: '0 6px 16px rgba(245,158,11,0.08)'
+                };
+            }
+            return {
+                background: 'linear-gradient(135deg, #fff1f2, #fff5f5)',
+                border: '1px solid #fca5a5',
+                shadow: '0 6px 16px rgba(239,68,68,0.08)'
+            };
+        }
+
+        function toLocaleInt(value) {
+            return (value || 0).toLocaleString();
+        }
+
+        function formatMoney(value) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value || 0);
+        }
+
+        function formatHours(value) {
+            if (!value || value <= 0) return 'N/A';
+            const h = Math.floor(value);
+            const m = Math.round((value - h) * 60);
+            return `${h > 0 ? `${h}h` : ''}${m > 0 ? ` ${m}m` : ''}`.trim();
+        }
+
+        function trustTier(rating, reviews) {
+            const cred = calculateReviewCredibility(reviews);
+            if (rating >= 4.7 && cred >= 0.8) return { label: 'Elite Rank Class', color: '#06b6d4' };
+            if (rating >= 4.4 && cred >= 0.6) return { label: 'Highly Acclaimed', color: '#8b5cf6' };
+            if (rating >= 4.0 && cred >= 0.4) return { label: 'Good Standing', color: '#64748b' };
+            if (rating >= 4.0) return { label: 'Emerging Quality', color: '#f59e0b' };
+            return { label: 'Standard Track', color: '#64748b' };
+        }
+
+        function normalizeCourse(raw) {
+            const score = Number(raw['AI Efficiency Score']) || 0;
+            const rating = Number(raw['Rating']) || 0;
+            const reviews = Number(raw['Reviews Count']) || 0;
+            const enrolled = Number(raw['Enrolled Students']) || 0;
+            const durationHours = Number(raw['Duration (Hours)']) || 0;
+            const lectures = Number(raw['Lectures Count']) || 0;
+            const price = parsePrice(raw['Price']);
+            const title = String(raw['Course Name'] || '').trim();
+            const instructor = String(raw['Instructor'] || 'Unknown Instructor').trim();
+            const category = String(raw['Category'] || '').trim();
+            const subCategory = String(raw['Sub-Category'] || '').trim();
+            const recommendation = String(raw['AI Recommendation'] || 'Standard Target').trim();
+            const language = String(raw['Language'] || 'Unknown').trim();
+            const commitment = String(raw['Commitment Level'] || 'N/A').trim();
+            const pacing = String(raw['Pacing Model'] || 'N/A').trim();
+            const freshness = String(raw['Freshness Status'] || 'Legacy System').trim();
+            const isPractice = String(raw['Is Practice Test'] || 'No').toLowerCase() === 'yes';
+            const updatedDate = parseDateDMY(raw['Updated Date']);
+            const createdDate = parseDateDMY(raw['Created Date']);
+            const daysOld = daysSince(updatedDate);
+
+            const searchable = [
+                title,
+                instructor,
+                category,
+                subCategory,
+                recommendation,
+                language,
+                commitment,
+                pacing,
+                freshness,
+                isPractice ? 'practice test' : 'standard course'
+            ].join(' ').toLowerCase();
+
+            return {
+                id: String(raw['Course ID'] || '').trim(),
+                title,
+                instructor,
+                category,
+                subCategory,
+                recommendation,
+                language,
+                commitment,
+                pacing,
+                freshness,
+                isPractice,
+                score,
+                rating,
+                reviews,
+                enrolled,
+                durationHours,
+                lectures,
+                price,
+                imageUrl: raw['Course Image URL'] || '',
+                detailsUrl: raw['Details URL'] || '#',
+                updatedDate,
+                createdDate,
+                daysOld,
+                searchable
+            };
+        }
+
+        function getDistinct(list, key) {
+            const values = new Set();
+            list.forEach(item => {
+                const value = item[key];
+                if (value && value !== 'N/A') values.add(value);
+            });
+            return Array.from(values).sort((a, b) => a.localeCompare(b));
+        }
+
+        function init() {
+            bindEvents();
+            parseCSV();
+        }
+
+        function bindEvents() {
+            const debouncedSearch = debounce((value) => {
+                state.search = value.trim().toLowerCase();
+                refresh();
+            }, 220);
+
+            els.searchInput.addEventListener('input', (event) => debouncedSearch(event.target.value));
+
+            els.sortSelect.addEventListener('change', (event) => {
+                state.sort = event.target.value;
+                refresh();
+            });
+
+            els.quickCategory.addEventListener('change', (event) => {
+                state.quickCategory = event.target.value;
+                refresh();
+            });
+
+            els.quickSubCategory.addEventListener('change', (event) => {
+                state.quickSubCategory = event.target.value;
+                refresh();
+            });
+
+            els.rankingPreset.addEventListener('change', (event) => {
+                state.rankingPreset = event.target.value;
+                els.pickPresetLabel.textContent = `Preset: ${event.target.selectedOptions[0].text.replace('Top Picks Preset: ', '')}`;
+                renderTopPicks(state.filteredCourses);
+            });
+
+            els.clearSearchBtn.addEventListener('click', () => {
+                els.searchInput.value = '';
+                state.search = '';
+                refresh();
+            });
+
+            els.clearAllBtn.addEventListener('click', clearAllFilters);
+
+           els.toggleSidebarBtn.addEventListener('click', () => {
+    const appShell = document.querySelector('.app');
+    const isCollapsed = appShell.classList.toggle('is-sidebar-collapsed');
+
+    els.toggleSidebarBtn.textContent = isCollapsed
+        ? '☰'
+        : 'Collapse Filters';
+
+    els.toggleSidebarBtn.title = isCollapsed
+        ? 'Show Filters'
+        : 'Collapse Filters';
+
+    els.toggleSidebarBtn.setAttribute(
+        'aria-expanded',
+        String(!isCollapsed)
+    );
+});
+
+            const numericInputs = [
+                ['scoreMin', 'scoreMin'],
+                ['scoreMax', 'scoreMax'],
+                ['ratingMin', 'ratingMin'],
+                ['ratingMax', 'ratingMax'],
+                ['durationMin', 'durationMin'],
+                ['durationMax', 'durationMax'],
+                ['priceMin', 'priceMin'],
+                ['priceMax', 'priceMax']
+            ];
+
+            numericInputs.forEach(([elementKey, stateKey]) => {
+                els[elementKey].addEventListener('input', debounce((event) => {
+                    const val = Number(event.target.value);
+                    state.filters[stateKey] = Number.isFinite(val) ? val : 0;
+                    refresh();
+                }, 120));
+            });
+
+            els.tabs.forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    state.currentView = tab.dataset.view;
+                    els.tabs.forEach(t => t.classList.remove('is-active'));
+                    tab.classList.add('is-active');
+                    els.coursesView.classList.toggle('is-active', state.currentView === 'courses');
+                    els.statsView.classList.toggle('is-active', state.currentView === 'stats');
+                    if (state.currentView === 'stats') renderStats();
+                });
+            });
+
+            els.loadMoreBtn.addEventListener('click', () => {
+                state.visibleCount += PAGE_SIZE;
+                renderCourses(state.filteredCourses);
+            });
+        }
+
+        function parseCSV() {
+            Papa.parse(CSV_FILE_PATH, {
+                download: true,
+                header: true,
+                dynamicTyping: false,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    state.allCourses = results.data
+                        .filter(row => row['Course ID'])
+                        .map(normalizeCourse);
+
+                    hydrateGroups();
+                    buildFilterGroups();
+                    buildQuickFilters();
+                    refresh();
+                },
+                error: (err) => {
+                    els.resultsTitle.textContent = 'Failed to load CSV';
+                    els.courseGrid.innerHTML = `<div class="empty">Error loading CSV file.<br>${escapeHtml(err.message || 'Unknown error')}</div>`;
+                }
+            });
+        }
+
+        function hydrateGroups() {
+            state.groups.category = getDistinct(state.allCourses, 'category');
+            state.groups.subCategory = getDistinct(state.allCourses, 'subCategory');
+            state.groups.recommendation = getDistinct(state.allCourses, 'recommendation');
+            state.groups.language = getDistinct(state.allCourses, 'language');
+            state.groups.commitment = getDistinct(state.allCourses, 'commitment');
+            state.groups.pacing = getDistinct(state.allCourses, 'pacing');
+        }
+
+        function buildQuickFilters() {
+            fillSelect(els.quickCategory, state.groups.category, 'Quick Category: All');
+            fillSelect(els.quickSubCategory, state.groups.subCategory, 'Quick Sub-Category: All');
+        }
+
+        function fillSelect(selectEl, values, defaultLabel) {
+            const fragment = document.createDocumentFragment();
+            selectEl.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = defaultLabel;
+            fragment.appendChild(defaultOption);
+
+            values.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                fragment.appendChild(option);
+            });
+            selectEl.appendChild(fragment);
+        }
+
+        function buildFilterGroups() {
+            buildSingleFilterGroup(els.groupCategory, 'Categories', 'category');
+            buildSingleFilterGroup(els.groupSubcategory, 'Sub-Categories', 'subCategory');
+            buildSingleFilterGroup(els.groupRecommendation, 'AI Recommendation', 'recommendation');
+            buildSingleFilterGroup(els.groupType, 'Course Type', 'courseType');
+            buildSingleFilterGroup(els.groupLanguage, 'Language', 'language');
+            buildSingleFilterGroup(els.groupFreshness, 'Freshness', 'freshness');
+            buildSingleFilterGroup(els.groupCommitment, 'Commitment', 'commitment');
+            buildSingleFilterGroup(els.groupPacing, 'Pacing', 'pacing');
+        }
+
+        function buildSingleFilterGroup(container, title, groupKey) {
+            const options = state.groups[groupKey] || [];
+            if (options.length === 0 && (groupKey === 'category' || groupKey === 'subCategory')) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'flex';
+            container.innerHTML = `
+                <div class="section-head">
+                    <h3>${escapeHtml(title)}</h3>
+                    <div class="mini-actions">
+                        <button type="button" data-action="all">All</button>
+                        <button type="button" data-action="clear">Clear</button>
+                    </div>
+                </div>
+                <input class="list-search" type="text" placeholder="Search ${escapeHtml(title.toLowerCase())}..." data-search>
+                <div class="scroll-list" data-list></div>
+            `;
+
+            container.querySelector('[data-search]').addEventListener('input', debounce((event) => {
+                state.groupSearch[groupKey] = event.target.value.trim().toLowerCase();
+                renderGroupOptions(groupKey);
+            }, 120));
+
+            container.querySelectorAll('[data-action]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    if (action === 'all') {
+                        state.filters[groupKey] = new Set(options);
+                    } else {
+                        state.filters[groupKey] = new Set();
+                    }
+                    renderGroupOptions(groupKey);
+                    refresh();
+                });
+            });
+
+            renderGroupOptions(groupKey);
+        }
+
+        function mapFilterOption(groupKey, value) {
+            if (groupKey === 'courseType') {
+                return value === 'Practice Test' ? 'Yes' : 'No';
+            }
+            return value;
+        }
+
+        function mapCourseField(groupKey, course) {
+            if (groupKey === 'courseType') return course.isPractice ? 'Yes' : 'No';
+            if (groupKey === 'category') return course.category;
+            if (groupKey === 'subCategory') return course.subCategory;
+            if (groupKey === 'recommendation') return course.recommendation;
+            if (groupKey === 'language') return course.language;
+            if (groupKey === 'freshness') return course.freshness;
+            if (groupKey === 'commitment') return course.commitment;
+            if (groupKey === 'pacing') return course.pacing;
+            return '';
+        }
+
+        function renderGroupOptions(groupKey) {
+            const containerMap = {
+                category: els.groupCategory,
+                subCategory: els.groupSubcategory,
+                recommendation: els.groupRecommendation,
+                courseType: els.groupType,
+                language: els.groupLanguage,
+                freshness: els.groupFreshness,
+                commitment: els.groupCommitment,
+                pacing: els.groupPacing
+            };
+            const container = containerMap[groupKey];
+            const list = container?.querySelector('[data-list]');
+            if (!list) return;
+
+            const options = state.groups[groupKey] || [];
+            const search = state.groupSearch[groupKey] || '';
+            const filtered = options.filter(option => option.toLowerCase().includes(search));
+
+            list.innerHTML = '';
+            if (filtered.length === 0) {
+                list.innerHTML = '<small class="muted">No matching options.</small>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            filtered.forEach(label => {
+                const value = mapFilterOption(groupKey, label);
+                const checked = state.filters[groupKey].has(value);
+                const item = document.createElement('label');
+                item.className = 'check-item';
+                item.innerHTML = `
+                    <input type="checkbox" ${checked ? 'checked' : ''}>
+                    <span>${escapeHtml(label)}</span>
+                `;
+                item.querySelector('input').addEventListener('change', (event) => {
+                    if (event.target.checked) {
+                        state.filters[groupKey].add(value);
+                    } else {
+                        state.filters[groupKey].delete(value);
+                    }
+                    refresh();
+                });
+                fragment.appendChild(item);
+            });
+            list.appendChild(fragment);
+        }
+
+        function clearAllFilters() {
+            state.filters.scoreMin = 0;
+            state.filters.scoreMax = 100;
+            state.filters.ratingMin = 0;
+            state.filters.ratingMax = 5;
+            state.filters.durationMin = 0;
+            state.filters.durationMax = 999;
+            state.filters.priceMin = 0;
+            state.filters.priceMax = 99999999;
+
+            ['category', 'subCategory', 'recommendation', 'courseType', 'language', 'freshness', 'commitment', 'pacing']
+                .forEach(group => state.filters[group] = new Set());
+
+            state.quickCategory = '';
+            state.quickSubCategory = '';
+            state.search = '';
+            state.visibleCount = PAGE_SIZE;
+
+            els.searchInput.value = '';
+            els.quickCategory.value = '';
+            els.quickSubCategory.value = '';
+
+            els.scoreMin.value = state.filters.scoreMin;
+            els.scoreMax.value = state.filters.scoreMax;
+            els.ratingMin.value = state.filters.ratingMin;
+            els.ratingMax.value = state.filters.ratingMax;
+            els.durationMin.value = state.filters.durationMin;
+            els.durationMax.value = state.filters.durationMax;
+            els.priceMin.value = state.filters.priceMin;
+            els.priceMax.value = state.filters.priceMax;
+
+            ['category', 'subCategory', 'recommendation', 'courseType', 'language', 'freshness', 'commitment', 'pacing']
+                .forEach(renderGroupOptions);
+
+            refresh();
+        }
+
+        function applyFilters() {
+            const tokens = state.search.split(/\s+/).filter(Boolean);
+
+            const filtered = state.allCourses.filter(course => {
+                if (course.score < state.filters.scoreMin || course.score > state.filters.scoreMax) return false;
+                if (course.rating < state.filters.ratingMin || course.rating > state.filters.ratingMax) return false;
+                if (course.durationHours < state.filters.durationMin || course.durationHours > state.filters.durationMax) return false;
+                if (course.price < state.filters.priceMin || course.price > state.filters.priceMax) return false;
+
+                if (state.quickCategory && course.category !== state.quickCategory) return false;
+                if (state.quickSubCategory && course.subCategory !== state.quickSubCategory) return false;
+
+                const groups = ['category', 'subCategory', 'recommendation', 'courseType', 'language', 'freshness', 'commitment', 'pacing'];
+                for (const group of groups) {
+                    const set = state.filters[group];
+                    if (set.size === 0) continue;
+                    const value = mapCourseField(group, course);
+                    if (!set.has(value)) return false;
+                }
+
+                if (tokens.length > 0) {
+                    const ok = tokens.every(token => course.searchable.includes(token));
+                    if (!ok) return false;
+                }
+
+                return true;
+            });
+
+            return sortCourses(filtered);
+        }
+
+        function sortCourses(courses) {
+            const sorted = [...courses];
+            const sort = state.sort;
+            sorted.sort((a, b) => {
+                if (sort === 'score_desc') return b.score - a.score;
+                if (sort === 'score_asc') return a.score - b.score;
+                if (sort === 'rating_desc') return b.rating - a.rating;
+                if (sort === 'enrolled_desc') return b.enrolled - a.enrolled;
+                if (sort === 'duration_desc') return b.durationHours - a.durationHours;
+                if (sort === 'duration_asc') return a.durationHours - b.durationHours;
+                if (sort === 'price_desc') return b.price - a.price;
+                if (sort === 'price_asc') return a.price - b.price;
+                if (sort === 'updated_desc') return a.daysOld - b.daysOld;
+                if (sort === 'title_asc') return a.title.localeCompare(b.title);
+                return 0;
+            });
+            return sorted;
+        }
+
+        function buildActiveChips() {
+            const chips = [];
+            if (state.search) chips.push({ type: 'search', label: `Search: ${state.search}` });
+            if (state.quickCategory) chips.push({ type: 'quickCategory', label: `Quick Category: ${state.quickCategory}` });
+            if (state.quickSubCategory) chips.push({ type: 'quickSubCategory', label: `Quick Sub-Category: ${state.quickSubCategory}` });
+
+            const numRanges = [
+                ['Score', state.filters.scoreMin, state.filters.scoreMax, 0, 100],
+                ['Rating', state.filters.ratingMin, state.filters.ratingMax, 0, 5],
+                ['Duration(h)', state.filters.durationMin, state.filters.durationMax, 0, 999],
+                ['Price', state.filters.priceMin, state.filters.priceMax, 0, 99999999]
+            ];
+
+            numRanges.forEach(([label, min, max, defaultMin, defaultMax]) => {
+                if (min !== defaultMin || max !== defaultMax) {
+                    chips.push({ type: `range:${label}`, label: `${label}: ${min} - ${max}` });
+                }
+            });
+
+            ['category', 'subCategory', 'recommendation', 'courseType', 'language', 'freshness', 'commitment', 'pacing']
+                .forEach(group => {
+                    const set = state.filters[group];
+                    if (set.size > 0) chips.push({ type: `group:${group}`, label: `${group}: ${set.size}` });
+                });
+
+            els.activeChips.innerHTML = '';
+            if (chips.length === 0) {
+                els.activeChips.innerHTML = '<span class="muted">No active filters. Showing your full library.</span>';
+                return;
+            }
+
+            chips.forEach(chip => {
+                const el = document.createElement('span');
+                el.className = 'chip';
+                el.innerHTML = `${escapeHtml(chip.label)} <button type="button" aria-label="Remove filter">x</button>`;
+                el.querySelector('button').addEventListener('click', () => removeChip(chip.type));
+                els.activeChips.appendChild(el);
+            });
+        }
+
+        function removeChip(type) {
+            if (type === 'search') {
+                state.search = '';
+                els.searchInput.value = '';
+            } else if (type === 'quickCategory') {
+                state.quickCategory = '';
+                els.quickCategory.value = '';
+            } else if (type === 'quickSubCategory') {
+                state.quickSubCategory = '';
+                els.quickSubCategory.value = '';
+            } else if (type.startsWith('range:')) {
+                const key = type.replace('range:', '');
+                if (key === 'Score') {
+                    state.filters.scoreMin = 0;
+                    state.filters.scoreMax = 100;
+                    els.scoreMin.value = 0;
+                    els.scoreMax.value = 100;
+                }
+                if (key === 'Rating') {
+                    state.filters.ratingMin = 0;
+                    state.filters.ratingMax = 5;
+                    els.ratingMin.value = 0;
+                    els.ratingMax.value = 5;
+                }
+                if (key === 'Duration(h)') {
+                    state.filters.durationMin = 0;
+                    state.filters.durationMax = 999;
+                    els.durationMin.value = 0;
+                    els.durationMax.value = 999;
+                }
+                if (key === 'Price') {
+                    state.filters.priceMin = 0;
+                    state.filters.priceMax = 99999999;
+                    els.priceMin.value = 0;
+                    els.priceMax.value = 99999999;
+                }
+            } else if (type.startsWith('group:')) {
+                const group = type.replace('group:', '');
+                state.filters[group] = new Set();
+                renderGroupOptions(group);
+            }
+            refresh();
+        }
+
+        function getFreshnessBadge(freshness) {
+            if (freshness === 'Current Ecosystem') return '<span class="badge badge--cyan">🔄 Current Ecosystem</span>';
+            if (freshness === 'Recent Lifecycle') return '<span class="badge badge--amber">🔄 Recent Lifecycle</span>';
+            return '<span class="badge badge--red">🔄 Legacy System</span>';
+        }
+
+        function recommendationBadge(rec) {
+            if (rec.includes('Top Pick')) return `<span class="badge badge--violet">🚀 ${escapeHtml(rec)}</span>`;
+            if (rec.includes('Quick Win')) return `<span class="badge badge--cyan">⚡ ${escapeHtml(rec)}</span>`;
+            return `<span class="badge badge--slate">🎯 ${escapeHtml(rec)}</span>`;
+        }
+
+        function renderCourses(courses) {
+            const total = courses.length;
+            const visible = courses.slice(0, state.visibleCount);
+
+            els.resultsTitle.textContent = `${total.toLocaleString()} matching courses`;
+            els.resultsMeta.textContent = `${visible.length.toLocaleString()} currently rendered for performance.`;
+
+            els.courseGrid.innerHTML = '';
+            if (total === 0) {
+                els.courseGrid.innerHTML = '<div class="empty">No courses match your filters. Try removing some constraints or searching a broader keyword.</div>';
+                els.loadMoreBtn.hidden = true;
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            visible.forEach(course => {
+                const scoreColor = getScoreColor(course.score);
+                const trust = trustTier(course.rating, course.reviews);
+                const style = getCardStyling(course.score, course.isPractice);
+                const runtime = formatHours(course.durationHours);
+                const created = course.createdDate ? course.createdDate.toLocaleDateString('en-GB') : 'Unknown';
+                const updated = course.updatedDate ? course.updatedDate.toLocaleDateString('en-GB') : 'Unknown';
+                const image = escapeHtml(course.imageUrl || 'https://via.placeholder.com/480x270?text=No+Image');
+                const title = escapeHtml(course.title || 'Untitled Course');
+                const instructor = escapeHtml(course.instructor || 'Unknown Instructor');
+                const language = escapeHtml(course.language || 'Unknown');
+                const details = escapeHtml(course.detailsUrl || '#');
+                const enroll = toLocaleInt(course.enrolled);
+                const rating = course.rating.toFixed(1);
+
+                const article = document.createElement('article');
+                article.className = 'course-card';
+                article.style.background = style.background;
+                article.style.border = style.border;
+                article.style.boxShadow = style.shadow;
+                article.innerHTML = `
+                    <div class="course-media">
+                        <img src="${image}" alt="${title}" loading="lazy" onerror="this.src='https://via.placeholder.com/480x270?text=Image+Not+Found'">
+                        ${course.durationHours > 0 ? `<span class="overlay">⏱ ${runtime}</span>` : ''}
+                        <span class="overlay overlay-lang">🌍 ${language}</span>
+                    </div>
+                    <div class="course-body">
+                        <div class="score-bar"><div class="score-fill" style="width:${Math.max(0, Math.min(100, course.score))}%; background:${scoreColor};"></div></div>
+                        <div class="score-label" style="color:${scoreColor};">Score ${course.score}/100</div>
+
+                        <div class="rating-panel">
+                            <div>
+                                <div class="rating-main">⭐ ${rating} <small style="font-size:0.65rem;color:#718397;">/ 5.0</small></div>
+                                <div class="rating-sub">${toLocaleInt(course.reviews)} reviews</div>
+                            </div>
+                            <div class="trust">
+                                <strong style="color:${trust.color};">${escapeHtml(trust.label)}</strong>
+                                <span>Community Validated</span>
+                            </div>
+                        </div>
+
+                        <h3 class="course-title" title="${title}">${title}</h3>
+                        <div class="course-instructor">👨‍🏫 ${instructor}</div>
+
+                        <div class="badge-wrap">
+                            <span class="badge badge--amber">💲 ${formatMoney(course.price)}</span>
+                            <span class="badge badge--slate">👥 ${enroll}</span>
+                            ${course.durationHours > 0 ? `<span class="badge badge--cyan">⏱ ${runtime}</span>` : ''}
+                            ${course.lectures > 0 ? `<span class="badge badge--slate">🎥 ${course.lectures}</span>` : ''}
+                            <span class="badge badge--violet">📅 ${created}</span>
+                            <span class="badge badge--cyan">🔄 ${updated}</span>
+                            ${getFreshnessBadge(course.freshness)}
+                            ${course.pacing && course.pacing !== 'N/A' ? `<span class="badge badge--cyan">📈 ${escapeHtml(course.pacing)}</span>` : ''}
+                            ${course.commitment && course.commitment !== 'N/A' ? `<span class="badge badge--violet">🕒 ${escapeHtml(course.commitment)}</span>` : ''}
+                            ${recommendationBadge(course.recommendation)}
+                            ${course.isPractice ? '<span class="badge badge--amber">📝 Practice Test Engine</span>' : ''}
+                        </div>
+
+                        <div class="course-footer">
+                            <a class="course-link" href="${details}" target="_blank" rel="noopener">Go to Course</a>
+                        </div>
+                    </div>
+                `;
+                fragment.appendChild(article);
+            });
+            els.courseGrid.appendChild(fragment);
+
+            const hasMore = total > visible.length;
+            els.loadMoreBtn.hidden = !hasMore;
+            if (hasMore) {
+                els.loadMoreBtn.textContent = `Load More (${(total - visible.length).toLocaleString()} remaining)`;
+            }
+        }
+
+        function scoreForPreset(course, preset) {
+            const freshnessWeight = course.freshness === 'Current Ecosystem' ? 1 : course.freshness === 'Recent Lifecycle' ? 0.6 : 0.2;
+            const practiceWeight = course.isPractice ? 1 : 0;
+            const durationWeight = Math.max(0, 1 - (course.durationHours / 40));
+            const deepDurationWeight = Math.min(1, course.durationHours / 20);
+            const ratingNorm = course.rating / 5;
+            const scoreNorm = course.score / 100;
+            const cred = calculateReviewCredibility(course.reviews);
+
+            if (preset === 'quick') {
+                return (scoreNorm * 0.42) + (durationWeight * 0.28) + (freshnessWeight * 0.18) + (ratingNorm * 0.12);
+            }
+            if (preset === 'deep') {
+                return (scoreNorm * 0.38) + (deepDurationWeight * 0.3) + (ratingNorm * 0.16) + (freshnessWeight * 0.16);
+            }
+            if (preset === 'cert') {
+                return (practiceWeight * 0.45) + (scoreNorm * 0.25) + (freshnessWeight * 0.2) + (cred * 0.1);
+            }
+            return (scoreNorm * 0.45) + (ratingNorm * 0.2) + (freshnessWeight * 0.2) + (cred * 0.15);
+        }
+
+        function topReason(course, preset) {
+            if (preset === 'quick') {
+                return `Great for fast progress: ${course.durationHours.toFixed(1)}h and score ${course.score}.`;
+            }
+            if (preset === 'deep') {
+                return `Best for deep mastery with ${course.durationHours.toFixed(1)}h and ${course.lectures} lectures.`;
+            }
+            if (preset === 'cert') {
+                return course.isPractice
+                    ? 'Certification-friendly: practice-test format with fresh content.'
+                    : 'Strong certification support due to score, freshness, and review credibility.';
+            }
+            return `Balanced pick with score ${course.score}, rating ${course.rating.toFixed(1)}, and ${course.freshness.toLowerCase()}.`;
+        }
+
+        function renderTopPicks(courses) {
+            const ranked = [...courses]
+                .map(course => ({
+                    course,
+                    rankScore: scoreForPreset(course, state.rankingPreset)
+                }))
+                .sort((a, b) => b.rankScore - a.rankScore)
+                .slice(0, 6);
+
+            els.topPicks.innerHTML = '';
+            if (ranked.length === 0) {
+                els.topPicks.innerHTML = '<div class="empty">No recommendations available for this filter state.</div>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            ranked.forEach((row, idx) => {
+                const c = row.course;
+                const pick = document.createElement('div');
+                pick.className = 'pick';
+                pick.innerHTML = `
+                    <small>#${idx + 1} • Rank ${(row.rankScore * 100).toFixed(1)}</small>
+                    <strong>${escapeHtml(c.title)}</strong>
+                    <small>${escapeHtml(topReason(c, state.rankingPreset))}</small>
+                    <a href="${escapeHtml(c.detailsUrl)}" target="_blank" rel="noopener">Open Course</a>
+                `;
+                fragment.appendChild(pick);
+            });
+            els.topPicks.appendChild(fragment);
+        }
+
+        function aggregateStats(courses) {
+            const count = courses.length;
+            const totals = courses.reduce((acc, c) => {
+                acc.score += c.score;
+                acc.rating += c.rating;
+                acc.enrolled += c.enrolled;
+                acc.price += c.price;
+                acc.duration += c.durationHours;
+                if (c.price === 0) acc.free += 1;
+                if (c.price > 0) acc.paid += 1;
+                return acc;
+            }, {
+                score: 0,
+                rating: 0,
+                enrolled: 0,
+                price: 0,
+                duration: 0,
+                free: 0,
+                paid: 0
+            });
+
+            return {
+                count,
+                avgScore: count ? totals.score / count : 0,
+                avgRating: count ? totals.rating / count : 0,
+                totalEnrolled: totals.enrolled,
+                totalPrice: totals.price,
+                avgPrice: count ? totals.price / count : 0,
+                avgDuration: count ? totals.duration / count : 0,
+                free: totals.free,
+                paid: totals.paid
+            };
+        }
+
+        function distribution(courses, key, limit = 8) {
+            const map = new Map();
+            courses.forEach(c => {
+                const value = c[key] || 'Unknown';
+                map.set(value, (map.get(value) || 0) + 1);
+            });
+            return Array.from(map.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, limit);
+        }
+
+        function renderBarDistribution(target, entries, total) {
+            target.innerHTML = '';
+            if (entries.length === 0) {
+                target.innerHTML = '<small class="muted">No data available.</small>';
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            entries.forEach(([name, value]) => {
+                const pct = total > 0 ? (value / total) * 100 : 0;
+                const row = document.createElement('div');
+                row.className = 'bar-item';
+                row.innerHTML = `
+                    <span title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+                    <div class="bar"><span style="width:${pct.toFixed(2)}%"></span></div>
+                    <strong>${value}</strong>
+                `;
+                fragment.appendChild(row);
+            });
+            target.appendChild(fragment);
+        }
+
+        function renderStats() {
+            const global = aggregateStats(state.allCourses);
+            const current = aggregateStats(state.filteredCourses);
+            const cards = [
+                ['Courses', `${current.count.toLocaleString()} / ${global.count.toLocaleString()}`],
+                ['Total Price', `${formatMoney(current.totalPrice)} / ${formatMoney(global.totalPrice)}`],
+                ['Average Price', `${formatMoney(current.avgPrice)} / ${formatMoney(global.avgPrice)}`],
+                ['Average AI Score', `${current.avgScore.toFixed(1)} / ${global.avgScore.toFixed(1)}`],
+                ['Average Rating', `${current.avgRating.toFixed(2)} / ${global.avgRating.toFixed(2)}`],
+                ['Total Enrolled', `${toLocaleInt(current.totalEnrolled)} / ${toLocaleInt(global.totalEnrolled)}`],
+                ['Free vs Paid', `${current.free} free, ${current.paid} paid`],
+                ['Average Duration (h)', `${current.avgDuration.toFixed(2)} / ${global.avgDuration.toFixed(2)}`]
+            ];
+
+            els.statsCards.innerHTML = '';
+            const fragment = document.createDocumentFragment();
+            cards.forEach(([label, value]) => {
+                const card = document.createElement('div');
+                card.className = 'metric';
+                card.innerHTML = `<small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong>`;
+                fragment.appendChild(card);
+            });
+            els.statsCards.appendChild(fragment);
+
+            renderBarDistribution(
+                els.distRecommendation,
+                distribution(state.filteredCourses, 'recommendation', 10),
+                state.filteredCourses.length
+            );
+            renderBarDistribution(
+                els.distFreshness,
+                distribution(state.filteredCourses, 'freshness', 10),
+                state.filteredCourses.length
+            );
+            renderBarDistribution(
+                els.distCategory,
+                distribution(state.filteredCourses, 'category', 10),
+                state.filteredCourses.length
+            );
+            renderBarDistribution(
+                els.distSubCategory,
+                distribution(state.filteredCourses, 'subCategory', 10),
+                state.filteredCourses.length
+            );
+        }
+
+        function refresh() {
+            state.visibleCount = Math.max(PAGE_SIZE, state.visibleCount);
+            state.filteredCourses = applyFilters();
+
+            buildActiveChips();
+            renderCourses(state.filteredCourses);
+            renderTopPicks(state.filteredCourses);
+            if (state.currentView === 'stats') renderStats();
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
